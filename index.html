@@ -1,12 +1,392 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Safety Innovations Impact Group</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#103f35" />
+    <meta
+      name="description"
+      content="Safety Innovations Impact Group helps organisations and communities prepare people for real emergencies through practical training and safety support."
+    />
+    <title>SIIG — Prepared for what happens next</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="nav-shell container">
+        <a class="brand" href="/" aria-label="SIIG home"
+          ><img src="/siig-mark.png" alt="" /><span
+            ><strong>SIIG</strong
+            ><small>Safety Innovations<br />Impact Group</small></span
+          ></a
+        >
+        <button
+          class="menu-button"
+          type="button"
+          aria-label="Open navigation"
+          aria-expanded="false"
+          aria-controls="primary-nav"
+          data-menu-button
+        >
+          <span></span><span></span>
+        </button>
+        <nav
+          class="site-nav"
+          id="primary-nav"
+          aria-label="Main navigation"
+          data-menu
+        >
+          <a class="active" aria-current="page" href="/">Home</a
+          ><a href="/services.html">Services</a
+          ><a href="/method.html">Our method</a><a href="/about.html">About</a
+          ><a href="/community.html">Community</a
+          ><a href="/contact.html">Contact</a>
+        </nav>
+        <a class="nav-cta" href="/contact.html"
+          >Start a conversation <span aria-hidden="true">↗</span></a
+        >
+      </div>
+    </header>
+    <main id="main">
+      <section class="hero">
+        <div class="hero-light" aria-hidden="true"></div>
+        <div class="hero-grid container">
+          <div class="hero-copy">
+            <p class="eyebrow light">
+              <span class="pulse-dot"></span> PRACTICAL SAFETY, REAL CONFIDENCE
+            </p>
+            <h1>
+              Prepared for<br /><em>what happens</em><br />next<span
+                class="period"
+                >.</span
+              >
+            </h1>
+            <p class="hero-lede">
+              Emergencies do not wait for perfect conditions. We help people
+              practise, plan, and respond with confidence when it matters.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-coral" href="#find-your-path"
+                >Find your path <span aria-hidden="true">↗</span></a
+              ><a class="button button-outline" href="/services.html"
+                >Explore services <span aria-hidden="true">↗</span></a
+              >
+            </div>
+            <p class="hero-footnote">
+              Safety Innovations Impact Group
+              <span aria-hidden="true">/</span> Ghana
+            </p>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="orbital orbital-one"></div>
+            <div class="orbital orbital-two"></div>
+            <div class="orbital orbital-three"></div>
+            <div class="orbit-center">
+              <span class="orbit-cross">+</span
+              ><span>READINESS<br />IS PRACTISED</span>
+            </div>
+            <div class="orbit-label orbit-label-one"><b>01</b> Understand</div>
+            <div class="orbit-label orbit-label-two"><b>02</b> Practise</div>
+            <div class="orbit-label orbit-label-three"><b>03</b> Respond</div>
+            <div class="hero-art-caption">
+              THE MOMENT BEFORE<br />MAKES THE DIFFERENCE.
+            </div>
+          </div>
+        </div>
+        <div class="hero-bottom container">
+          <span>SCROLL TO EXPLORE</span
+          ><span class="arrow-down" aria-hidden="true">↓</span
+          ><span>01 / 05</span>
+        </div>
+      </section>
+
+      <section class="statement section-pad">
+        <div class="container statement-grid">
+          <div>
+            <p class="eyebrow">THE PROBLEM WE WORK ON</p>
+            <div class="statement-index">01 <span>—</span> 03</div>
+            <figure class="actual-photo">
+              <img
+                src="/images/siig-team-photo.png"
+                alt="Two people beside a SIIG safety display and wheelchair"
+                loading="lazy"
+                decoding="async"
+                width="239"
+                height="314"
+              />
+            </figure>
+          </div>
+          <div data-reveal>
+            <h2>
+              Paper compliance cannot respond to an emergency.
+              <span>People can.</span>
+            </h2>
+            <p>
+              SIIG was founded around a simple gap: organisations may meet
+              requirements on paper while their teams remain unsure what to do
+              in a real incident. Our work connects safety planning to practical
+              action.
+            </p>
+            <a class="text-link" href="/method.html"
+              >See how we train <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section class="path-section section-pad" id="find-your-path">
+        <div class="container">
+          <div class="section-top">
+            <div>
+              <p class="eyebrow">FIND YOUR PATH</p>
+              <h2>What needs to be ready?</h2>
+            </div>
+            <p>
+              Start with the situation you are responsible for. We will point
+              you toward the right conversation.
+            </p>
+          </div>
+          <div class="chooser" data-chooser>
+            <div
+              class="chooser-tabs"
+              role="tablist"
+              aria-label="Choose a safety need"
+            >
+              <button
+                type="button"
+                role="tab"
+                data-choice="team"
+                aria-selected="true"
+              >
+                <span>01</span><strong>My team</strong
+                ><span aria-hidden="true">↗</span></button
+              ><button
+                type="button"
+                role="tab"
+                data-choice="workplace"
+                aria-selected="false"
+              >
+                <span>02</span><strong>My workplace</strong
+                ><span aria-hidden="true">↗</span></button
+              ><button
+                type="button"
+                role="tab"
+                data-choice="event"
+                aria-selected="false"
+              >
+                <span>03</span><strong>My event</strong
+                ><span aria-hidden="true">↗</span>
+              </button>
+            </div>
+            <div
+              class="chooser-output"
+              role="tabpanel"
+              aria-live="polite"
+              data-choice-output
+            >
+              <div class="chooser-kicker">01 / TEAM</div>
+              <h3>Build the confidence to act.</h3>
+              <p>
+                Practical first aid and fire safety sessions help people
+                rehearse the decisions they may need to make at work.
+              </p>
+              <ul class="check-list">
+                <li>First aid, CPR and AED</li>
+                <li>Fire awareness and evacuation drills</li>
+                <li>Workplace-specific scenarios</li>
+              </ul>
+              <a class="text-link" href="/services.html#training"
+                >Explore training <span aria-hidden="true">↗</span></a
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="method-band">
+        <div class="container method-band-grid">
+          <div class="method-band-copy" data-reveal>
+            <p class="eyebrow light">OUR METHOD</p>
+            <h2>Learn.<br /><em>Practise.</em><br />Perform.</h2>
+            <p>
+              Understanding is the start. Repeated practice in realistic
+              scenarios is how confidence takes shape.
+            </p>
+            <a class="button button-light" href="/method.html"
+              >Explore our approach <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <div class="method-steps" aria-label="Our training method">
+            <div>
+              <span>01 / LEARN</span><strong>Know the situation</strong>
+              <p>Understand the risks and the response.</p>
+            </div>
+            <div>
+              <span>02 / PRACTISE</span><strong>Repeat the skill</strong>
+              <p>Build muscle memory through doing.</p>
+            </div>
+            <div>
+              <span>03 / PERFORM</span><strong>Act with confidence</strong>
+              <p>Apply it in a realistic scenario.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="services-preview section-pad">
+        <div class="container">
+          <div class="section-top">
+            <div>
+              <p class="eyebrow">WHAT WE DO</p>
+              <h2>Safety that moves<br />beyond the slide deck.</h2>
+            </div>
+            <a class="text-link" href="/services.html"
+              >All services <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <div class="service-cards">
+            <a class="service-card" href="/services.html#training"
+              ><span class="card-number">01 / TRAINING</span
+              ><span class="card-photo-stack"
+                ><img
+                  class="service-card-image"
+                  src="/images/training.webp"
+                  alt="People practising CPR on a training manikin"
+                  loading="lazy"
+                  decoding="async"
+                  width="1586"
+                  height="992" /><img
+                  class="service-card-image alternate"
+                  src="/images/fire-training.webp"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  width="1586"
+                  height="992"
+              /></span>
+              <h3>First aid & fire safety</h3>
+              <p>
+                Hands-on programmes that help people recognise, rehearse, and
+                respond.
+              </p>
+              <span class="card-arrow" aria-hidden="true">↗</span></a
+            ><a class="service-card" href="/services.html#workplace"
+              ><span class="card-number">02 / WORKPLACE</span
+              ><img
+                class="service-card-image"
+                src="/images/workplace.webp"
+                alt="warehouse staff reviewing a safety checklist"
+                loading="lazy"
+                decoding="async"
+                width="1586"
+                height="992"
+              />
+              <h3>Workplace readiness</h3>
+              <p>
+                Practical support for planning, risk review, and safety
+                equipment decisions.
+              </p>
+              <span class="card-arrow" aria-hidden="true">↗</span></a
+            ><a class="service-card" href="/services.html#events"
+              ><span class="card-number">03 / EVENTS</span
+              ><img
+                class="service-card-image"
+                src="/images/event.webp"
+                alt="a first aid responder speaking with an event organiser"
+                loading="lazy"
+                decoding="async"
+                width="1586"
+                height="992"
+              />
+              <h3>Event safety & care</h3>
+              <p>
+                Thoughtful event support that starts with the people and the
+                setting.
+              </p>
+              <span class="card-arrow" aria-hidden="true">↗</span></a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section class="impact-teaser section-pad">
+        <div class="container impact-grid">
+          <figure class="impact-photo editorial-photo">
+            <img
+              src="/images/community.webp"
+              alt="community volunteers checking a first aid kit"
+              loading="lazy"
+              decoding="async"
+              width="1586"
+              height="992"
+            />
+          </figure>
+          <div data-reveal>
+            <p class="eyebrow">COMMUNITY COMMITMENT</p>
+            <h2>Readiness should reach <em>everyone.</em></h2>
+            <p>
+              SIIG's community medical support initiative is intended to help
+              resource-limited institutions gain access to essential emergency
+              response materials and equipment.
+            </p>
+            <a class="text-link" href="/community.html"
+              >Explore the initiative <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section class="closing-cta">
+        <div class="container closing-grid">
+          <div>
+            <p class="eyebrow light">THE NEXT STEP</p>
+            <h2>Let’s make readiness <em>real.</em></h2>
+          </div>
+          <div>
+            <p>
+              Tell us about your team, site, or event. We will start with what
+              you need to prepare for.
+            </p>
+            <a class="button button-coral" href="/contact.html"
+              >Talk to SIIG <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div>
+          <a class="footer-brand" href="/">SIIG<span>.</span></a>
+          <p>Prepared people.<br />Protected places.</p>
+        </div>
+        <div>
+          <small>EXPLORE</small><a href="/services.html">Services</a
+          ><a href="/method.html">Our method</a><a href="/about.html">About</a
+          ><a href="/community.html">Community</a>
+        </div>
+        <div>
+          <small>CONNECT</small><a href="/contact.html">Contact</a
+          ><a href="mailto:safetyinnovations.ltd@gmail.com">Email</a
+          ><a href="tel:+233261370547">+233 26 137 0547</a>
+        </div>
+        <div>
+          <small>SAFETY INNOVATIONS IMPACT GROUP</small>
+          <p>Practical safety training and support in Ghana.</p>
+        </div>
+      </div>
+      <div class="container footer-bottom">
+        <span>© 2026 SIIG</span><span>Built around readiness.</span>
+      </div>
+    </footer>
+    <script type="module" src="/src/site.js"></script>
   </body>
 </html>
