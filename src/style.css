@@ -212,7 +212,7 @@ ul {
   background: var(--cream-100);
   color: var(--forest-900);
   padding: 0.85rem var(--space-5);
-  border-radius: 100rem;
+  border-radius: 0;
   font-weight: 700;
   font-size: var(--t-sm);
   white-space: nowrap;
@@ -342,7 +342,7 @@ ul {
   justify-content: space-between;
   gap: var(--space-7);
   padding: var(--space-4) var(--space-5);
-  border-radius: 100rem;
+  border-radius: 0;
   font-weight: 700;
   min-height: 3.5rem;
   transition:
@@ -625,7 +625,7 @@ ul {
   background: var(--forest-900);
   color: white;
   overflow: hidden;
-  border-radius: 1.5rem;
+  border-radius: 0;
 }
 .chooser-tabs {
   display: flex;
