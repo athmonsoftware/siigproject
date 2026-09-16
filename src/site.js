@@ -1,5 +1,7 @@
 document.documentElement.classList.add("js");
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+const coarsePointer = matchMedia("(pointer: coarse)");
+const mobileHeroArt = document.querySelector(".hero-art");
 
 // A small progress trace makes long pages feel navigable without covering content.
 const progress = document.createElement("div");
@@ -11,6 +13,21 @@ function updateScrollProgress() {
   scrollFrame = 0;
   const distance = document.documentElement.scrollHeight - innerHeight;
   progress.style.transform = `scaleX(${distance > 0 ? scrollY / distance : 0})`;
+  if (mobileHeroArt && coarsePointer.matches && !reducedMotion.matches) {
+    const bounds = mobileHeroArt.getBoundingClientRect();
+    const travel = Math.max(
+      0,
+      Math.min(1, (innerHeight - bounds.top) / (innerHeight + bounds.height)),
+    );
+    mobileHeroArt.style.setProperty(
+      "--art-y",
+      `${Math.round((travel - 0.5) * 24)}px`,
+    );
+    mobileHeroArt.style.setProperty(
+      "--mobile-drift",
+      `${Math.round((travel - 0.5) * 16)}px`,
+    );
+  }
 }
 addEventListener(
   "scroll",
@@ -178,6 +195,25 @@ if (serviceNav && "IntersectionObserver" in window) {
   sections
     .filter(Boolean)
     .forEach((section) => sectionObserver.observe(section));
+}
+
+// Give touch users a visible response as each service card reaches the viewport.
+const mobileCards = document.querySelectorAll(".service-card");
+if (mobileCards.length && "IntersectionObserver" in window) {
+  const cardObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        entry.target.classList.toggle(
+          "is-active",
+          entry.isIntersecting &&
+            !reducedMotion.matches &&
+            coarsePointer.matches,
+        );
+      });
+    },
+    { rootMargin: "-18% 0px -18% 0px", threshold: 0.25 },
+  );
+  mobileCards.forEach((card) => cardObserver.observe(card));
 }
 
 const serviceSelect = document.querySelector('[name="service"]');

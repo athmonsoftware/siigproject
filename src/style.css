@@ -936,11 +936,13 @@ ul {
 }
 .training-photo-pair {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-2);
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
 }
 .training-photo-pair img {
-  aspect-ratio: 4 / 5;
+  aspect-ratio: auto;
+  height: auto;
+  object-fit: contain;
 }
 .about-origin-grid {
   display: grid;
@@ -1612,6 +1614,50 @@ ul {
   }
 }
 @media (max-width: 38rem) {
+  .editorial-photo img,
+  .service-card-image {
+    aspect-ratio: auto;
+    height: auto;
+    object-fit: contain;
+  }
+  .card-photo-stack {
+    height: auto;
+    aspect-ratio: 1586 / 992;
+  }
+  .card-photo-stack .service-card-image {
+    height: 100%;
+  }
+  .service-card.is-active {
+    transform: translateY(-0.25rem);
+    box-shadow: 0 1.25rem 2.5rem rgba(16, 43, 37, 0.14);
+  }
+  .service-card.is-active::before {
+    transform: scale(1);
+    opacity: 1;
+  }
+  .service-card.is-active .card-arrow {
+    transform: translate(0.3rem, -0.3rem);
+  }
+  .hero-art .orbit-label-one {
+    transform: translateY(var(--mobile-drift, 0px));
+  }
+  .hero-art .orbit-label-two {
+    transform: translateX(var(--mobile-drift, 0px));
+  }
+  .hero-art .orbit-label-three {
+    transform: translateY(calc(var(--mobile-drift, 0px) * -1));
+  }
+  .js.motion-ready .editorial-photo img {
+    opacity: 0.7;
+    transform: scale(0.96);
+    transition:
+      opacity 600ms var(--ease),
+      transform 600ms var(--ease);
+  }
+  .js.motion-ready .editorial-photo.is-visible img {
+    opacity: 1;
+    transform: scale(1);
+  }
   .container {
     width: min(100% - 2rem, 84rem);
   }
