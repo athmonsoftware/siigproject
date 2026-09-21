@@ -55,6 +55,7 @@ function Login({ onAuthenticated }) {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [recoveryMode, setRecoveryMode] = useState(false);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -63,6 +64,16 @@ function Login({ onAuthenticated }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) setMessage(error.message);
     else onAuthenticated(data.session);
+    setLoading(false);
+  };
+
+  const requestReset = async (event) => {
+    event.preventDefault();
+    setLoading(true); setMessage("");
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/admin/reset-password`,
+    });
+    setMessage(error ? error.message : "Check your email for the secure password reset link.");
     setLoading(false);
   };
 
@@ -78,26 +89,45 @@ function Login({ onAuthenticated }) {
         <p className="text-sm text-emerald-100/60">Safety Innovations Impact Group</p>
       </section>
       <section className="flex items-center justify-center px-5 py-12">
-        <form onSubmit={submit} className="w-full max-w-md bg-white p-8 shadow-2xl">
+        <form onSubmit={recoveryMode ? requestReset : submit} className="w-full max-w-md bg-white p-8 shadow-2xl">
           <img src="/logo.png" alt="SIIG" className="mb-8 h-14 lg:hidden" />
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-800">Admin panel</p>
-          <h2 className="mt-2 text-3xl font-black text-slate-950">Welcome back</h2>
-          <p className="mt-2 text-slate-600">Sign in with your approved SIIG administrator account.</p>
+          <h2 className="mt-2 text-3xl font-black text-slate-950">{recoveryMode ? "Reset your password" : "Welcome back"}</h2>
+          <p className="mt-2 text-slate-600">{recoveryMode ? "We will email a secure reset link to your administrator address." : "Sign in with your approved SIIG administrator account."}</p>
           <label className="mt-8 block text-sm font-bold text-slate-700">Email
             <input className={inputClass} type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
           </label>
-          <label className="mt-5 block text-sm font-bold text-slate-700">Password
+          {!recoveryMode && <label className="mt-5 block text-sm font-bold text-slate-700">Password
             <input className={inputClass} type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-          </label>
+          </label>}
           {message && <p role="alert" className="mt-4 bg-red-50 p-3 text-sm text-red-800">{message}</p>}
           <button disabled={loading} className="mt-6 flex min-h-12 w-full items-center justify-center bg-emerald-800 px-5 font-bold text-white transition hover:bg-emerald-900 disabled:opacity-60">
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? "Working…" : recoveryMode ? "Send reset link" : "Sign in"}
           </button>
+          <button type="button" onClick={() => { setRecoveryMode(!recoveryMode); setMessage(""); }} className="mt-4 w-full text-center text-sm font-bold text-emerald-800 hover:underline">{recoveryMode ? "Return to sign in" : "Forgot password?"}</button>
           <a href="/" className="mt-6 block text-center text-sm font-semibold text-slate-600 hover:text-emerald-800">View public website</a>
         </form>
       </section>
     </main>
   );
+}
+
+function PasswordReset() {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const submit = async (event) => {
+    event.preventDefault();
+    if (password.length < 12) { setMessage("Use at least 12 characters."); return; }
+    if (password !== confirmPassword) { setMessage("Passwords do not match."); return; }
+    setLoading(true);
+    const { error } = await supabase.auth.updateUser({ password });
+    setLoading(false);
+    if (error) setMessage(error.message);
+    else { setMessage("Password updated. Redirecting to the admin panel…"); window.setTimeout(() => { window.location.href = "/admin"; }, 900); }
+  };
+  return <main className="grid min-h-screen place-items-center bg-slate-950 px-5"><form onSubmit={submit} className="w-full max-w-md bg-white p-8 shadow-2xl"><p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-800">SIIG administration</p><h1 className="mt-2 text-3xl font-black text-slate-950">Choose a new password</h1><p className="mt-2 text-slate-600">Use at least 12 characters and keep it private.</p><label className="mt-7 block text-sm font-bold text-slate-700">New password<input className={inputClass} type="password" autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} /></label><label className="mt-5 block text-sm font-bold text-slate-700">Confirm password<input className={inputClass} type="password" autoComplete="new-password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} /></label>{message && <p role="status" className="mt-4 bg-slate-100 p-3 text-sm text-slate-700">{message}</p>}<button disabled={loading} className="mt-6 min-h-12 w-full bg-emerald-800 px-5 font-bold text-white hover:bg-emerald-900 disabled:opacity-60">{loading ? "Updating…" : "Update password"}</button></form></main>;
 }
 
 function Metric({ label, value, note }) {
@@ -273,6 +303,7 @@ export default function AdminPanel() {
 
   if (!isSupabaseConfigured) return <SetupScreen />;
   if (loading) return <main className="grid min-h-screen place-items-center bg-slate-950 text-white"><RefreshCw className="h-7 w-7 animate-spin" aria-label="Loading" /></main>;
+  if (window.location.pathname === "/admin/reset-password" && session) return <PasswordReset />;
   if (!session) return <Login onAuthenticated={setSession} />;
   if (authorized === null) return <main className="grid min-h-screen place-items-center bg-slate-950 text-white"><RefreshCw className="h-7 w-7 animate-spin" aria-label="Checking access" /></main>;
   if (!authorized) return <main className="grid min-h-screen place-items-center bg-slate-950 px-5 text-white"><section className="max-w-lg border border-white/15 bg-white/5 p-8 text-center"><ShieldCheck className="mx-auto h-10 w-10 text-amber-400" /><h1 className="mt-5 text-3xl font-black">Access awaiting approval</h1><p className="mt-3 leading-7 text-slate-300">This account is authenticated but has not been assigned an SIIG administrator or editor role.</p><button onClick={() => supabase.auth.signOut()} className="mt-7 min-h-11 bg-white px-5 font-bold text-slate-950">Sign out</button></section></main>;
