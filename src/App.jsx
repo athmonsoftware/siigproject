@@ -14,6 +14,8 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { useSiteContent } from "./hooks/useSiteContent";
+import { isSupabaseConfigured, supabase } from "./lib/supabase";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -100,7 +102,7 @@ const Navbar = () => {
   );
 };
 
-const Hero = () => {
+const Hero = ({ content }) => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/90 to-brand-green/80 text-white pt-24 pb-12">
       {/* Glassmorphic Navbar */}
@@ -148,7 +150,7 @@ const Hero = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div>
               <span className="inline-block bg-white/15 text-brand-red text-xs px-3 py-1 rounded-full uppercase tracking-widest font-semibold mb-6 border border-white/10">
-                YOUR SAFETY, OUR MISSION
+                {content.eyebrow}
               </span>
 
               <motion.h1
@@ -157,9 +159,9 @@ const Hero = () => {
                 transition={{ delay: 0.2, duration: 0.8 }}
                 className="text-4xl md:text-6xl font-black tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400 leading-tight"
               >
-                Next-Gen Safety.
-                <br />
-                Uncompromising Protection.
+                {content.title.split("\n").map((line, index) => (
+                  <React.Fragment key={line}>{index > 0 && <br />}{line}</React.Fragment>
+                ))}
               </motion.h1>
 
               <motion.p
@@ -168,7 +170,7 @@ const Hero = () => {
                 transition={{ delay: 0.4, duration: 0.8 }}
                 className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
               >
-                A Trusted Partner in Health Security-Prepared people.
+                {content.description}
               </motion.p>
 
               <motion.div
@@ -181,14 +183,14 @@ const Hero = () => {
                   href="#services"
                   className="w-full sm:w-auto bg-white text-black hover:bg-gray-200 px-8 py-4 rounded-xl font-bold transition shadow-xl flex items-center justify-center"
                 >
-                  Explore Solutions
+                  {content.primary_button}
                   <ArrowRight className="inline ml-2 w-5 h-5" />
                 </a>
                 <a
                   href="#contact"
                   className="w-full sm:w-auto backdrop-blur-md bg-white/10 border border-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl font-bold transition"
                 >
-                  Book a Consultation
+                  {content.secondary_button}
                 </a>
               </motion.div>
             </div>
@@ -828,7 +830,7 @@ const TrainingApproach = () => {
   );
 };
 
-const About = () => {
+const About = ({ content }) => {
   return (
     <section
       id="about"
@@ -845,7 +847,7 @@ const About = () => {
           viewport={{ once: true }}
           className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
         >
-          About Us
+          {content.heading}
         </motion.h2>
 
         <motion.div
@@ -857,32 +859,18 @@ const About = () => {
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div>
-              <h3 className="text-2xl font-bold text-white mb-6">Our Story</h3>
+              <h3 className="text-2xl font-bold text-white mb-6">{content.story_title}</h3>
               <p className="text-gray-300 leading-relaxed mb-4">
-                Safety Innovations Impact Group is a professional safety
-                training and compliance company established in February 2025,
-                dedicated to equipping organisations and communities with
-                life-saving skills and practical emergency preparedness.
+                {content.story_paragraph_1}
               </p>
               <p className="text-gray-300 leading-relaxed mb-4">
-                Founded in February 2025, the company was created in response to
-                a growing need: many workplaces meet safety requirements on
-                paper but remain unprepared in real emergencies. Our goal is to
-                bridge the gap between compliance and real-world readiness.
+                {content.story_paragraph_2}
               </p>
               <p className="text-gray-300 leading-relaxed">
-                We provide hands-on first aid and fire safety training designed
-                not just to certify participants, but to give them the
-                confidence to act when seconds matter. Our instructors bring
-                practical experience, structured teaching methods, and
-                scenario-based learning to ensure that knowledge becomes
-                instinct. Every program is tailored to the environment in which
-                it will be used, because emergencies never happen in a classroom
-                — they happen in real workplaces.
+                {content.story_paragraph_3}
               </p>
               <p className="text-brand-red font-semibold mt-4 italic">
-                At Safety Innovations Impact Group, safety is not a checklist,
-                it's our culture.
+                {content.statement}
               </p>
             </div>
             <motion.div
@@ -1246,7 +1234,7 @@ const CommunityInitiative = () => {
   );
 };
 
-const ProfileCallToAction = () => (
+const ProfileCallToAction = ({ content }) => (
   <section className="py-20 px-4 bg-brand-green">
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -1255,22 +1243,22 @@ const ProfileCallToAction = () => (
       className="max-w-5xl mx-auto backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl text-center"
     >
       <p className="text-brand-red font-semibold uppercase tracking-widest mb-4">
-        Emergencies are unpredictable. Preparation should not be.
+        {content.eyebrow}
       </p>
       <h2 className="text-3xl md:text-5xl font-bold text-white mb-8">
-        Train your team. Protect your workplace. Build a culture of safety.
+        {content.title}
       </h2>
       <a
         href="#contact"
         className="inline-flex items-center justify-center gap-2 bg-white text-black hover:bg-gray-200 px-8 py-4 rounded-xl font-bold transition"
       >
-        Contact SIIG <ArrowRight className="w-5 h-5" />
+        {content.button} <ArrowRight className="w-5 h-5" />
       </a>
     </motion.div>
   </section>
 );
 
-const Contact = () => {
+const Contact = ({ content }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -1279,8 +1267,21 @@ const Contact = () => {
     message: "",
   });
 
-  const handleSubmit = (e) => {
+  const [submitState, setSubmitState] = useState({ loading: false, message: "", error: false });
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSupabaseConfigured) {
+      setSubmitState({ loading: true, message: "", error: false });
+      const { error } = await supabase.from("enquiries").insert(formData);
+      if (!error) {
+        setFormData({ name: "", email: "", phone: "", company: "", message: "" });
+        setSubmitState({ loading: false, message: "Thank you. Your message has been received.", error: false });
+        return;
+      }
+      setSubmitState({ loading: false, message: "We could not submit your message. Please use the email option instead.", error: true });
+      return;
+    }
     const subject = `SIIG enquiry from ${formData.name}`;
     const body = [
       `Name: ${formData.name}`,
@@ -1306,7 +1307,7 @@ const Contact = () => {
           viewport={{ once: true }}
           className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
         >
-          Contact Us
+          {content.heading}
         </motion.h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -1319,8 +1320,7 @@ const Contact = () => {
           >
             <h3 className="text-2xl font-bold text-white mb-6">Get in Touch</h3>
             <p className="text-gray-300 leading-relaxed mb-8">
-              Ready to enhance your workplace safety? Contact us today for a
-              consultation or to learn more about our services.
+              {content.intro}
             </p>
 
             <div className="space-y-6">
@@ -1331,10 +1331,10 @@ const Contact = () => {
                 <div>
                   <p className="text-gray-400 text-sm">Phone</p>
                   <a
-                    href="tel:+233261370547"
+                    href={`tel:${content.phone_link}`}
                     className="text-white font-semibold hover:text-brand-red transition"
                   >
-                    +233 26 137 0547
+                    {content.phone}
                   </a>
                 </div>
               </div>
@@ -1346,10 +1346,10 @@ const Contact = () => {
                 <div>
                   <p className="text-gray-400 text-sm">Email</p>
                   <a
-                    href="mailto:safetyinnovations.ltd@gmail.com"
+                    href={`mailto:${content.email}`}
                     className="text-white font-semibold hover:text-brand-red transition"
                   >
-                    safetyinnovations.ltd@gmail.com
+                    {content.email}
                   </a>
                 </div>
               </div>
@@ -1361,12 +1361,12 @@ const Contact = () => {
                 <div>
                   <p className="text-gray-400 text-sm">WhatsApp</p>
                   <a
-                    href="https://wa.me/233261370547"
+                    href={`https://wa.me/${content.phone_link.replace(/\D/g, "")}`}
                     target="_blank"
                     rel="noreferrer"
                     className="text-white font-semibold hover:text-brand-red transition"
                   >
-                    +233 26 137 0547
+                    {content.phone}
                   </a>
                 </div>
               </div>
@@ -1378,12 +1378,12 @@ const Contact = () => {
                 <div>
                   <p className="text-gray-400 text-sm">Instagram</p>
                   <a
-                    href="https://www.instagram.com/safety_innovationsimpactgh/"
+                    href={content.instagram_url}
                     target="_blank"
                     rel="noreferrer"
                     className="text-white font-semibold hover:text-brand-red transition"
                   >
-                    @safety_innovationsimpactgh
+                    {content.instagram}
                   </a>
                 </div>
               </div>
@@ -1474,11 +1474,13 @@ const Contact = () => {
                 />
               </div>
 
+              {submitState.message && <p role="status" className={`p-3 text-sm font-semibold ${submitState.error ? "bg-red-950/40 text-red-200" : "bg-emerald-950/50 text-emerald-100"}`}>{submitState.message}</p>}
               <button
                 type="submit"
+                disabled={submitState.loading}
                 className="w-full bg-brand-green hover:bg-brand-green/80 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg shadow-brand-green/20 flex items-center justify-center gap-2"
               >
-                Prepare Email
+                {submitState.loading ? "Sending…" : isSupabaseConfigured ? "Send Message" : "Prepare Email"}
                 <Send className="w-5 h-5" />
               </button>
             </form>
@@ -1503,15 +1505,16 @@ const Footer = () => {
 };
 
 function App() {
+  const content = useSiteContent();
   return (
     <div className="min-h-screen overflow-x-hidden bg-brand-green text-white font-sans antialiased selection:bg-brand-red selection:text-white">
-      <Hero />
+      <Hero content={content.hero} />
       <Services />
       <TrainingApproach />
-      <About />
+      <About content={content.about} />
       <CommunityInitiative />
-      <ProfileCallToAction />
-      <Contact />
+      <ProfileCallToAction content={content.call_to_action} />
+      <Contact content={content.contact} />
       <Footer />
     </div>
   );
