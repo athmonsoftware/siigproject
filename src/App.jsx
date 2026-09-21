@@ -1,17 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart,
   Shield,
   CheckCircle,
   ArrowRight,
-  Calendar,
   Users,
   Target,
   Award,
   Mail,
   Phone,
-  MapPin,
   Send,
   Menu,
   X,
@@ -25,8 +23,6 @@ const Navbar = () => {
     { name: "Training", href: "#training" },
     { name: "About", href: "#about" },
     { name: "Community", href: "#community" },
-    { name: "Compliance", href: "#compliance" },
-    { name: "Team", href: "#team" },
   ];
 
   return (
@@ -204,9 +200,9 @@ const Hero = () => {
               className="relative"
             >
               <img
-                src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&h=500&fit=crop"
-                alt="Safety Training"
-                className="rounded-2xl shadow-2xl w-full h-auto object-cover hue-rotate-15"
+                src="/images/siig-team-photo.png"
+                alt="SIIG team members beside a safety display"
+                className="rounded-2xl shadow-2xl w-full max-h-[32rem] object-contain mx-auto"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-green/50 to-transparent rounded-2xl"></div>
             </motion.div>
@@ -653,6 +649,38 @@ const Services = () => {
               </li>
             </ul>
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+            <div>
+              <h4 className="text-lg font-bold text-white mb-4">
+                Why Event Organisers Choose Us
+              </h4>
+              <ul className="space-y-2 text-gray-400">
+                {[
+                  "Visible safety presence for peace of mind",
+                  "Reduced liability risk",
+                  "Faster response times",
+                  "Professional guest care",
+                  "Support for vulnerable attendees",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-lg font-bold text-white mb-4">
+                Ideal for Events Such As
+              </h4>
+              <p className="text-gray-400 leading-relaxed">
+                Corporate events, school functions, community gatherings,
+                sporting events, festivals, private celebrations, and religious
+                events.
+              </p>
+            </div>
+          </div>
         </motion.div>
       </div>
     </section>
@@ -698,9 +726,9 @@ const TrainingApproach = () => {
               className="relative"
             >
               <img
-                src="https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=600&h=400&fit=crop"
-                alt="Training Session"
-                className="rounded-2xl shadow-2xl w-full h-auto object-cover"
+                src="/images/siig-team-photo.png"
+                alt="SIIG team members at a community safety event"
+                className="rounded-2xl shadow-2xl w-full max-h-[32rem] object-contain mx-auto"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-green/30 to-transparent rounded-2xl"></div>
             </motion.div>
@@ -800,71 +828,6 @@ const TrainingApproach = () => {
   );
 };
 
-const ImpactCounter = ({ target, suffix, label }) => {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    const duration = 2000;
-    const steps = 60;
-    const increment = target / steps;
-    let current = 0;
-
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= target) {
-        setCount(target);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(current));
-      }
-    }, duration / steps);
-
-    return () => clearInterval(timer);
-  }, [target]);
-
-  return (
-    <div className="text-center">
-      <div className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-green to-brand-red mb-2">
-        {count}
-        {suffix}
-      </div>
-      <div className="text-gray-400 text-lg">{label}</div>
-    </div>
-  );
-};
-
-const Impact = () => {
-  return (
-    <section className="py-24 px-4 bg-brand-green">
-      <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-2xl"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
-            <ImpactCounter target={500} suffix="+" label="Businesses Secured" />
-            <ImpactCounter
-              target={10000}
-              suffix="+"
-              label="Trainees Certified"
-            />
-            <div className="text-center">
-              <div className="flex justify-center mb-2">
-                <Calendar className="w-16 h-16 text-brand-red" />
-              </div>
-              <div className="text-gray-400 text-lg">
-                24/7 Response Readiness
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  );
-};
-
 const About = () => {
   return (
     <section
@@ -930,9 +893,9 @@ const About = () => {
               className="relative"
             >
               <img
-                src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&h=400&fit=crop"
-                alt="Safety Training"
-                className="rounded-2xl shadow-2xl w-full h-auto object-cover"
+                src="/images/siig-team-photo.png"
+                alt="SIIG team members beside a safety display"
+                className="rounded-2xl shadow-2xl w-full max-h-[32rem] object-contain mx-auto"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-green/30 to-transparent rounded-2xl"></div>
             </motion.div>
@@ -989,7 +952,7 @@ const About = () => {
           className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl"
         >
           <h3 className="text-2xl font-bold text-white mb-6">
-            Our Values (CAPE)
+            Our Values (PIIPE)
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex items-start gap-4">
@@ -1059,107 +1022,6 @@ const About = () => {
             </div>
           </div>
         </motion.div>
-      </div>
-    </section>
-  );
-};
-
-const Compliance = () => {
-  const certifications = [
-    {
-      name: "Ghana Standards Authority",
-      description: "Certified safety training provider",
-    },
-    {
-      name: "Occupational Safety & Health",
-      description: "OSHA compliant protocols",
-    },
-    {
-      name: "First Aid Certification",
-      description: "Red Cross certified training",
-    },
-    { name: "Fire Safety Compliance", description: "GNFS approved procedures" },
-  ];
-
-  return (
-    <section id="compliance" className="py-24 px-4 bg-brand-green">
-      <div className="max-w-7xl mx-auto">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
-        >
-          Compliance & Certifications
-        </motion.h2>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12"
-        >
-          <h3 className="text-2xl font-bold text-white mb-6">
-            Regulatory Compliance
-          </h3>
-          <p className="text-gray-300 leading-relaxed mb-6">
-            We ensure full compliance with Ghana's workplace safety regulations
-            and international standards. Our team stays updated with the latest
-            regulatory requirements to help your business maintain compliance
-            and avoid penalties.
-          </p>
-          <ul className="space-y-3">
-            <li className="flex items-start gap-3 text-gray-300">
-              <CheckCircle className="w-5 h-5 text-brand-red shrink-0 mt-0.5" />
-              <span>Labor Act compliance and workplace safety standards</span>
-            </li>
-            <li className="flex items-start gap-3 text-gray-300">
-              <CheckCircle className="w-5 h-5 text-brand-red shrink-0 mt-0.5" />
-              <span>Fire safety regulations and emergency protocols</span>
-            </li>
-            <li className="flex items-start gap-3 text-gray-300">
-              <CheckCircle className="w-5 h-5 text-brand-red shrink-0 mt-0.5" />
-              <span>Health and safety risk assessments</span>
-            </li>
-            <li className="flex items-start gap-3 text-gray-300">
-              <CheckCircle className="w-5 h-5 text-brand-red shrink-0 mt-0.5" />
-              <span>Industry-specific compliance requirements</span>
-            </li>
-          </ul>
-        </motion.div>
-
-        <motion.h3
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-2xl font-bold text-center mb-8 text-white"
-        >
-          Our Certifications
-        </motion.h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {certifications.map((cert, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
-              className="backdrop-blur-xl bg-white/10 border border-white/20 p-6 rounded-2xl shadow-xl hover:border-brand-green/50 transition-all duration-300"
-            >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-brand-green/30 rounded-xl">
-                  <Award className="w-6 h-6 text-brand-red" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-bold text-white">{cert.name}</h4>
-                  <p className="text-gray-400 text-sm">{cert.description}</p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
       </div>
     </section>
   );
@@ -1384,6 +1246,30 @@ const CommunityInitiative = () => {
   );
 };
 
+const ProfileCallToAction = () => (
+  <section className="py-20 px-4 bg-brand-green">
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="max-w-5xl mx-auto backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl text-center"
+    >
+      <p className="text-brand-red font-semibold uppercase tracking-widest mb-4">
+        Emergencies are unpredictable. Preparation should not be.
+      </p>
+      <h2 className="text-3xl md:text-5xl font-bold text-white mb-8">
+        Train your team. Protect your workplace. Build a culture of safety.
+      </h2>
+      <a
+        href="#contact"
+        className="inline-flex items-center justify-center gap-2 bg-white text-black hover:bg-gray-200 px-8 py-4 rounded-xl font-bold transition"
+      >
+        Contact SIIG <ArrowRight className="w-5 h-5" />
+      </a>
+    </motion.div>
+  </section>
+);
+
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -1395,9 +1281,16 @@ const Contact = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    alert("Thank you for your message! We will get back to you soon.");
-    setFormData({ name: "", email: "", phone: "", company: "", message: "" });
+    const subject = `SIIG enquiry from ${formData.name}`;
+    const body = [
+      `Name: ${formData.name}`,
+      `Email: ${formData.email}`,
+      `Phone: ${formData.phone || "Not provided"}`,
+      `Organisation: ${formData.company || "Not provided"}`,
+      "",
+      formData.message,
+    ].join("\n");
+    window.location.href = `mailto:safetyinnovations.ltd@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
   const handleChange = (e) => {
@@ -1437,7 +1330,12 @@ const Contact = () => {
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">Phone</p>
-                  <p className="text-white font-semibold">+233 26 137 0547</p>
+                  <a
+                    href="tel:+233261370547"
+                    className="text-white font-semibold hover:text-brand-red transition"
+                  >
+                    +233 26 137 0547
+                  </a>
                 </div>
               </div>
 
@@ -1447,19 +1345,29 @@ const Contact = () => {
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">Email</p>
-                  <p className="text-white font-semibold">
+                  <a
+                    href="mailto:safetyinnovations.ltd@gmail.com"
+                    className="text-white font-semibold hover:text-brand-red transition"
+                  >
                     safetyinnovations.ltd@gmail.com
-                  </p>
+                  </a>
                 </div>
               </div>
 
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-brand-green/30 rounded-xl">
-                  <MapPin className="w-6 h-6 text-brand-red" />
+                  <Phone className="w-6 h-6 text-brand-red" />
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm">Location</p>
-                  <p className="text-white font-semibold">Accra, Ghana</p>
+                  <p className="text-gray-400 text-sm">WhatsApp</p>
+                  <a
+                    href="https://wa.me/233261370547"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-white font-semibold hover:text-brand-red transition"
+                  >
+                    +233 26 137 0547
+                  </a>
                 </div>
               </div>
 
@@ -1469,9 +1377,14 @@ const Contact = () => {
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">Instagram</p>
-                  <p className="text-white font-semibold">
+                  <a
+                    href="https://www.instagram.com/safety_innovationsimpactgh/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-white font-semibold hover:text-brand-red transition"
+                  >
                     @safety_innovationsimpactgh
-                  </p>
+                  </a>
                 </div>
               </div>
             </div>
@@ -1565,78 +1478,11 @@ const Contact = () => {
                 type="submit"
                 className="w-full bg-brand-green hover:bg-brand-green/80 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg shadow-brand-green/20 flex items-center justify-center gap-2"
               >
-                Send Message
+                Prepare Email
                 <Send className="w-5 h-5" />
               </button>
             </form>
           </motion.div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const Team = () => {
-  const teamMembers = [
-    {
-      name: "Kwame Mensah",
-      role: "Chief Executive Officer",
-      description: "20+ years in occupational safety and industrial management",
-    },
-    {
-      name: "Ama Ofori",
-      role: "Head of Training",
-      description:
-        "Certified safety trainer with expertise in emergency response",
-    },
-    {
-      name: "Kofi Asante",
-      role: "Compliance Director",
-      description:
-        "Specialist in Ghanaian labor laws and international safety standards",
-    },
-    {
-      name: "Efia Boateng",
-      role: "Operations Manager",
-      description:
-        "Expert in implementing safety protocols across various industries",
-    },
-  ];
-
-  return (
-    <section id="team" className="py-24 px-4 bg-brand-green">
-      <div className="max-w-7xl mx-auto">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
-        >
-          Our Team
-        </motion.h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {teamMembers.map((member, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
-              className="backdrop-blur-xl bg-white/10 border border-white/20 p-6 rounded-3xl shadow-xl group hover:border-brand-green/50 transition-all duration-300 text-center"
-            >
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-brand-green to-brand-red flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <Users className="w-12 h-12 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">
-                {member.name}
-              </h3>
-              <p className="text-brand-red font-semibold mb-3">{member.role}</p>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                {member.description}
-              </p>
-            </motion.div>
-          ))}
         </div>
       </div>
     </section>
@@ -1648,8 +1494,8 @@ const Footer = () => {
     <footer className="py-12 px-4 border-t border-white/10 bg-brand-green">
       <div className="max-w-7xl mx-auto text-center text-gray-400 text-sm">
         <p>
-          &copy; {new Date().getFullYear()} Safety Innovations Impact Group
-          Limited. All rights reserved.
+          &copy; {new Date().getFullYear()} Safety Innovations Impact Group. All
+          rights reserved.
         </p>
       </div>
     </footer>
@@ -1658,15 +1504,13 @@ const Footer = () => {
 
 function App() {
   return (
-    <div className="min-h-screen bg-brand-green text-white font-sans antialiased selection:bg-brand-red selection:text-white">
+    <div className="min-h-screen overflow-x-hidden bg-brand-green text-white font-sans antialiased selection:bg-brand-red selection:text-white">
       <Hero />
       <Services />
       <TrainingApproach />
-      <Impact />
       <About />
-      <Compliance />
       <CommunityInitiative />
-      <Team />
+      <ProfileCallToAction />
       <Contact />
       <Footer />
     </div>
