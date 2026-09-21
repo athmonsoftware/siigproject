@@ -117,6 +117,36 @@ insert into public.site_content (section, content, is_published) values
 ('contact', '{"heading":"Contact Us","intro":"Ready to enhance your workplace safety? Contact us today for a consultation or to learn more about our services.","phone":"+233 26 137 0547","phone_link":"+233261370547","email":"safetyinnovations.ltd@gmail.com","instagram":"@safety_innovationsimpactgh","instagram_url":"https://www.instagram.com/safety_innovationsimpactgh/"}', true)
 on conflict (section) do nothing;
 
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'site-media',
+  'site-media',
+  true,
+  5242880,
+  array['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']
+)
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "Public reads site media" on storage.objects;
+create policy "Public reads site media" on storage.objects for select
+to public using (bucket_id = 'site-media');
+
+drop policy if exists "Staff uploads site media" on storage.objects;
+create policy "Staff uploads site media" on storage.objects for insert
+to authenticated with check (bucket_id = 'site-media' and public.is_staff());
+
+drop policy if exists "Staff updates site media" on storage.objects;
+create policy "Staff updates site media" on storage.objects for update
+to authenticated using (bucket_id = 'site-media' and public.is_staff())
+with check (bucket_id = 'site-media' and public.is_staff());
+
+drop policy if exists "Staff deletes site media" on storage.objects;
+create policy "Staff deletes site media" on storage.objects for delete
+to authenticated using (bucket_id = 'site-media' and public.is_staff());
+
 -- After creating the first user in Authentication > Users, promote that account:
 -- insert into public.profiles (id, full_name, role)
 -- select id, 'SIIG Administrator', 'admin' from auth.users where email = 'YOUR_EMAIL';
