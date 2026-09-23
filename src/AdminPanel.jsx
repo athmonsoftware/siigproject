@@ -265,11 +265,11 @@ export default function AdminPanel() {
   const [active, setActive] = useState("overview");
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut({ scope: "local" });
+  const handleSignOut = () => {
     setAuthorized(null);
     setSession(null);
     setMenuOpen(false);
+    void supabase.auth.signOut({ scope: "local" });
   };
   const [enquiries, setEnquiries] = useState([]);
   const [contentRows, setContentRows] = useState({});
