@@ -20,7 +20,7 @@ import { useSiteContent } from "./hooks/useSiteContent";
 import { useTeamMembers } from "./hooks/useTeamMembers";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 
-const Navbar = () => {
+const Navbar = ({ showTeam }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -37,7 +37,7 @@ const Navbar = () => {
     { name: "Training", href: "#training" },
     { name: "About", href: "#about" },
     { name: "Community", href: "#community" },
-    { name: "Team", href: "#team" },
+    ...(showTeam ? [{ name: "Team", href: "#team" }] : []),
   ];
 
   return (
@@ -121,11 +121,11 @@ const Navbar = () => {
   );
 };
 
-const Hero = ({ content }) => {
+const Hero = ({ content, showTeam }) => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/90 to-brand-green/80 text-white pt-32 pb-12">
       {/* Glassmorphic Navbar */}
-      <Navbar />
+      <Navbar showTeam={showTeam} />
 
       {/* Animated Background Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -163,10 +163,10 @@ const Hero = ({ content }) => {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="relative z-10 max-w-4xl mx-auto px-4 text-center mt-12"
+        className="relative z-10 mx-auto mt-8 w-full max-w-6xl px-4 text-center sm:px-6 lg:mt-12"
       >
-        <div className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-16 rounded-3xl shadow-2xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        <div className="rounded-3xl border border-white/20 bg-white/10 p-5 shadow-2xl backdrop-blur-xl sm:p-8 lg:p-12">
+          <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:gap-10">
             <div>
               <span className="inline-block bg-white/15 text-brand-red text-xs px-3 py-1 rounded-full uppercase tracking-widest font-semibold mb-6 border border-white/10">
                 {content.eyebrow}
@@ -176,7 +176,7 @@ const Hero = ({ content }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
-                className="text-4xl md:text-6xl font-black tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400 leading-tight"
+                className="mb-6 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-4xl font-black leading-[1.08] tracking-tight text-transparent sm:text-5xl lg:text-6xl"
               >
                 {content.title.split("\n").map((line, index) => <React.Fragment key={line}>{index > 0 && <br />}{line}</React.Fragment>)}
               </motion.h1>
@@ -194,18 +194,18 @@ const Hero = ({ content }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.8 }}
-                className="flex flex-col sm:flex-row justify-center items-center gap-4"
+                className="mx-auto grid w-full max-w-xl grid-cols-1 gap-3 sm:grid-cols-2"
               >
                 <a
                   href="#services"
-                  className="w-full sm:w-auto bg-white text-black hover:bg-gray-200 px-8 py-4 rounded-xl font-bold transition shadow-xl flex items-center justify-center"
+                  className="flex min-h-14 w-full items-center justify-center whitespace-nowrap rounded-lg bg-white px-4 py-4 font-bold text-black shadow-xl transition hover:bg-gray-200 sm:px-6"
                 >
                   {content.primary_button}
                   <ArrowRight className="inline ml-2 w-5 h-5" />
                 </a>
                 <a
                   href="#contact"
-                  className="w-full sm:w-auto backdrop-blur-md bg-white/10 border border-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl font-bold transition"
+                  className="flex min-h-14 w-full items-center justify-center whitespace-nowrap rounded-lg border border-white/20 bg-white/10 px-4 py-4 font-bold text-white backdrop-blur-md transition hover:bg-white/20 sm:px-6"
                 >
                   {content.secondary_button}
                 </a>
@@ -221,7 +221,7 @@ const Hero = ({ content }) => {
               <img
                 src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&h=500&fit=crop"
                 alt="Safety Training"
-                className="rounded-2xl shadow-2xl w-full h-auto object-cover hue-rotate-15"
+                className="aspect-[4/3] w-full rounded-2xl object-cover object-center shadow-2xl hue-rotate-15 sm:aspect-[16/10] lg:aspect-[4/5]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-green/50 to-transparent rounded-2xl"></div>
             </motion.div>
@@ -264,7 +264,7 @@ const ServiceCard = ({ icon: Icon, title, description, features, delay }) => {
 
 const Services = () => {
   return (
-    <section id="services" className="py-24 px-4 relative bg-brand-green">
+    <section id="services" className="relative bg-brand-green px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
       <div className="max-w-7xl mx-auto">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
@@ -381,6 +381,13 @@ const Services = () => {
             staff know exactly what to do in the first critical minutes.
           </p>
 
+          <img
+            src="/images/fire-safety-training.jpg"
+            alt="Participants practising fire extinguisher use during an outdoor safety exercise"
+            className="mb-8 aspect-[16/9] w-full rounded-2xl object-cover object-center shadow-lg"
+            loading="lazy"
+          />
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <h4 className="text-lg font-bold text-white mb-4">
@@ -460,6 +467,13 @@ const Services = () => {
             We assist organisations in moving beyond paperwork toward real
             readiness.
           </p>
+
+          <img
+            src="/images/workplace-safety.jpg"
+            alt="Safety professionals reviewing a workplace plan while wearing protective equipment"
+            className="mb-8 aspect-[16/9] w-full rounded-2xl object-cover object-center shadow-lg"
+            loading="lazy"
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
@@ -678,7 +692,7 @@ const TrainingApproach = () => {
   return (
     <section
       id="training"
-      className="py-24 px-4 bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 relative overflow-hidden"
+      className="relative overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
     >
       {/* Decorative background elements */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-red/10 rounded-full blur-3xl animate-pulse"></div>
@@ -822,8 +836,8 @@ const ImpactAttribute = ({ icon: Icon, title, description }) => (
     viewport={{ once: true, amount: 0.4 }}
     className="text-center"
   >
-    <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/20 bg-white/10">
-      <Icon className="h-8 w-8 text-brand-red" aria-hidden="true" />
+    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl border border-white/20 bg-white/10 shadow-lg">
+      <Icon className="h-10 w-10 text-brand-red" aria-hidden="true" />
     </div>
     <h3 className="text-xl font-bold text-white md:text-2xl">{title}</h3>
     <p className="mx-auto mt-3 max-w-xs text-base leading-relaxed text-gray-300">
@@ -834,13 +848,30 @@ const ImpactAttribute = ({ icon: Icon, title, description }) => (
 
 const Impact = () => {
   return (
-    <section className="py-24 px-4 bg-brand-green">
+    <section className="bg-brand-green px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
       <div className="max-w-7xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mx-auto mb-10 max-w-3xl text-center sm:mb-14"
+        >
+          <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-brand-red">
+            Built for real response
+          </p>
+          <h2 className="text-4xl font-bold text-white md:text-5xl">
+            What Defines Our Training
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-gray-300">
+            Practical methods, realistic scenarios, and training shaped around
+            the people who will use it.
+          </p>
+        </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-2xl"
+          className="rounded-3xl border border-white/20 bg-white/10 p-6 shadow-2xl backdrop-blur-xl sm:p-10 lg:p-12"
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
             <ImpactAttribute
@@ -869,7 +900,7 @@ const About = ({ content }) => {
   return (
     <section
       id="about"
-      className="py-24 px-4 bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 relative overflow-hidden"
+      className="relative overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
     >
       {/* Decorative background elements */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-brand-red/10 rounded-full blur-3xl"></div>
@@ -916,9 +947,9 @@ const About = ({ content }) => {
               className="relative"
             >
               <img
-                src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&h=400&fit=crop"
-                alt="Safety Training"
-                className="rounded-2xl shadow-2xl w-full h-auto object-cover"
+                src="/images/siig-team-photo.png"
+                alt="SIIG representatives at a community safety event"
+                className="aspect-[4/3] w-full rounded-2xl object-cover object-center shadow-2xl"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-green/30 to-transparent rounded-2xl"></div>
             </motion.div>
@@ -975,7 +1006,7 @@ const About = ({ content }) => {
           className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl"
         >
           <h3 className="text-2xl font-bold text-white mb-6">
-            Our Values (CAPE)
+            Our Values (PIIPE)
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex items-start gap-4">
@@ -1054,7 +1085,7 @@ const CommunityInitiative = () => {
   return (
     <section
       id="community"
-      className="py-24 px-4 bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 relative overflow-hidden"
+      className="relative overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
     >
       {/* Decorative background elements */}
       <div className="absolute top-0 left-1/2 w-96 h-96 bg-brand-red/10 rounded-full blur-3xl animate-pulse"></div>
@@ -1324,7 +1355,7 @@ const Contact = ({ content }) => {
   };
 
   return (
-    <section id="contact" className="py-24 px-4 bg-brand-green">
+    <section id="contact" className="bg-brand-green px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
       <div className="max-w-7xl mx-auto">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
@@ -1501,8 +1532,10 @@ const Contact = ({ content }) => {
 };
 
 const Team = ({ members }) => {
+  if (!members.length) return null;
+
   return (
-    <section id="team" className="py-24 px-4 bg-brand-green">
+    <section id="team" className="bg-brand-green px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
       <div className="max-w-7xl mx-auto">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
@@ -1539,11 +1572,6 @@ const Team = ({ members }) => {
               </p>
             </motion.div>
           ))}
-          {!members.length && (
-            <div className="md:col-span-2 lg:col-span-4 border border-white/20 bg-white/10 p-8 text-center text-gray-300 rounded-3xl">
-              Team profiles will be introduced here.
-            </div>
-          )}
         </div>
       </div>
     </section>
@@ -1638,7 +1666,7 @@ function App() {
   return (
     <div className="public-site min-h-screen overflow-x-hidden bg-brand-green font-sans text-white antialiased selection:bg-brand-red selection:text-white">
       <ScrollProgress />
-      <Hero content={content.hero} />
+      <Hero content={content.hero} showTeam={teamMembers.length > 0} />
       <Services />
       <TrainingApproach />
       <Impact />
