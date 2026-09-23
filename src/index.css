@@ -3,8 +3,17 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 76px;
+  }
+
   body {
     @apply bg-deep-charcoal text-pure-white;
+  }
+
+  section[id] {
+    scroll-margin-top: 76px;
   }
 }
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart,
@@ -19,81 +19,120 @@ import { isSupabaseConfigured, supabase } from "./lib/supabase";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("home");
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   const navLinks = [
+    { name: "Home", href: "#home", id: "home" },
     { name: "Services", href: "#services" },
     { name: "Training", href: "#training" },
     { name: "About", href: "#about" },
     { name: "Community", href: "#community" },
+    { name: "Contact", href: "#contact", id: "contact" },
   ];
 
+  useEffect(() => {
+    const sectionIds = navLinks.map((link) => link.id || link.href.slice(1));
+    const updateProgress = () => {
+      const available = document.documentElement.scrollHeight - window.innerHeight;
+      setScrollProgress(available > 0 ? Math.min(100, (window.scrollY / available) * 100) : 0);
+    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible) setActiveSection(visible.target.id);
+      },
+      { rootMargin: "-24% 0px -60% 0px", threshold: [0.05, 0.2, 0.5] },
+    );
+    sectionIds.forEach((id) => {
+      const section = document.getElementById(id);
+      if (section) observer.observe(section);
+    });
+    updateProgress();
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", updateProgress);
+    };
+  }, []);
+
+  const navigate = (id) => {
+    setActiveSection(id);
+    setIsOpen(false);
+  };
+
   return (
-    <nav className="absolute top-0 left-0 right-0 w-full max-w-6xl mx-auto my-6 px-4 backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-4 flex justify-between items-center z-50">
-      <div className="flex items-center gap-3">
-        <img src="/logo.png" alt="SIIG Logo" className="h-12 w-auto" />
-        <div className="hidden sm:block">
-          <div className="font-bold text-xl tracking-wide text-white">SIIG</div>
+    <nav aria-label="Primary navigation" className="fixed inset-x-0 top-0 z-50 border-b border-white/15 bg-[#123d2f]/95 shadow-[0_12px_35px_rgba(0,0,0,0.2)] backdrop-blur-xl">
+      <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+        <a href="#home" onClick={() => navigate("home")} className="flex min-w-0 items-center gap-3" aria-label="SIIG home">
+          <img src="/logo.png" alt="" className="h-11 w-11 shrink-0 object-contain" />
+          <div className="min-w-0">
+            <div className="text-lg font-black leading-none tracking-[0.12em] text-white">SIIG</div>
+            <div className="mt-1 hidden truncate text-[9px] font-bold uppercase tracking-[0.16em] text-white/55 sm:block">Safety Innovations Impact Group</div>
+          </div>
+        </a>
+
+        <div className="hidden items-center border border-white/15 bg-black/10 p-1 md:flex" aria-label="Website sections">
+          {navLinks.map((link) => {
+            const id = link.id || link.href.slice(1);
+            const active = activeSection === id;
+            return (
+              <a
+                key={link.name}
+                href={link.href}
+                aria-current={active ? "page" : undefined}
+                className={`relative px-3 py-2 text-xs font-bold uppercase tracking-[0.08em] transition-colors lg:px-4 ${active ? "bg-white text-[#123d2f]" : "text-white/70 hover:bg-white/10 hover:text-white"}`}
+                onClick={() => navigate(id)}
+              >
+                {link.name}
+              </a>
+            );
+          })}
         </div>
+
+        <button
+          className="grid h-11 w-11 place-items-center border border-white/25 text-white transition hover:bg-white/10 md:hidden"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-expanded={isOpen}
+          aria-controls="mobile-navigation"
+          aria-label={isOpen ? "Close navigation" : "Open navigation"}
+        >
+          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
       </div>
 
-      {/* Desktop Navigation */}
-      <div className="hidden md:flex space-x-8 text-sm text-gray-300">
-        {navLinks.map((link) => (
-          <a
-            key={link.name}
-            href={link.href}
-            className="hover:text-white transition relative group"
-            onClick={() => setIsOpen(false)}
-          >
-            {link.name}
-            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-red transition-all duration-300 group-hover:w-full"></span>
-          </a>
-        ))}
+      <div className="absolute inset-x-0 bottom-0 h-[2px] bg-white/10" aria-hidden="true">
+        <div className="h-full bg-brand-red transition-[width] duration-150" style={{ width: `${scrollProgress}%` }} />
       </div>
 
-      <a
-        href="#contact"
-        className="hidden md:block bg-brand-green hover:bg-brand-green/80 text-white px-4 py-2 rounded-xl text-sm font-semibold transition shadow-lg shadow-brand-green/20"
-      >
-        Contact Us
-      </a>
-
-      {/* Mobile Menu Button */}
-      <button
-        className="md:hidden p-2 text-white"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-      </button>
-
-      {/* Mobile Menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            id="mobile-navigation"
+            initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="absolute top-full left-0 right-0 mt-2 backdrop-blur-xl bg-brand-green/95 border border-white/20 rounded-2xl p-6 md:hidden"
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.22 }}
+            className="absolute inset-x-0 top-full border-b border-white/15 bg-[#123d2f] p-4 shadow-2xl md:hidden"
           >
-            <div className="flex flex-col space-y-4">
-              {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  className="text-white hover:text-brand-red transition text-lg font-medium"
-                  onClick={() => setIsOpen(false)}
-                >
-                  {link.name}
-                </a>
-              ))}
-              <a
-                href="#contact"
-                className="bg-brand-green hover:bg-brand-green/80 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg shadow-brand-green/20 text-center"
-                onClick={() => setIsOpen(false)}
-              >
-                Contact Us
-              </a>
+            <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2">
+              {navLinks.map((link) => {
+                const id = link.id || link.href.slice(1);
+                const active = activeSection === id;
+                return (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    aria-current={active ? "page" : undefined}
+                    className={`border px-4 py-4 text-sm font-bold uppercase tracking-[0.08em] transition ${active ? "border-white bg-white text-[#123d2f]" : "border-white/15 text-white/80 hover:bg-white/10"}`}
+                    onClick={() => navigate(id)}
+                  >
+                    <span className="mr-2 text-white/35">0{navLinks.indexOf(link) + 1}</span>{link.name}
+                  </a>
+                );
+              })}
             </div>
           </motion.div>
         )}
@@ -104,9 +143,7 @@ const Navbar = () => {
 
 const Hero = ({ content }) => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/90 to-brand-green/80 text-white pt-24 pb-12">
-      {/* Glassmorphic Navbar */}
-      <Navbar />
+    <section id="home" className="relative min-h-screen scroll-mt-20 flex items-center justify-center overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/90 to-brand-green/80 text-white pt-28 pb-12">
 
       {/* Animated Background Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -1508,6 +1545,7 @@ function App() {
   const content = useSiteContent();
   return (
     <div className="min-h-screen overflow-x-hidden bg-brand-green text-white font-sans antialiased selection:bg-brand-red selection:text-white">
+      <Navbar />
       <Hero content={content.hero} />
       <Services />
       <TrainingApproach />
