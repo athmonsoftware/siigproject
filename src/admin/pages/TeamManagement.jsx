@@ -1,220 +1,156 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, Save, X } from "lucide-react";
+import { Pencil, Plus, Save, Trash2, Upload, UserRound } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "../../lib/supabase";
+
+const emptyMember = {
+  full_name: "",
+  position: "",
+  biography: "",
+  image_url: "",
+  image_alt: "",
+  display_order: 0,
+  is_published: true,
+};
+
+const inputClass = "mt-1 w-full border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100";
 
 export default function TeamManagement() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(null);
-  const [formData, setFormData] = useState({ name: "", role: "", description: "", image_url: "" });
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState(emptyMember);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
   const load = async () => {
-    const { data } = await supabase.from("team_members").select("*").order("display_order", { ascending: true });
+    const { data, error } = await supabase.from("team_members").select("*").order("display_order", { ascending: true }).order("created_at", { ascending: true });
+    if (error) setMessage(error.message);
     setMembers(data || []);
     setLoading(false);
   };
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
-    load();
+    if (isSupabaseConfigured) load();
   }, []);
 
-  const startEdit = (member = null) => {
-    if (member) {
-      setEditing(member.id);
-      setFormData({ name: member.name, role: member.role, description: member.description, image_url: member.image_url || "" });
-    } else {
-      setEditing("new");
-      setFormData({ name: "", role: "", description: "", image_url: "" });
-    }
+  const reset = () => {
+    setEditingId(null);
+    setForm({ ...emptyMember, display_order: members.length });
+    setMessage("");
   };
 
-  const save = async () => {
+  const startEdit = (member) => {
+    setEditingId(member.id);
+    setForm({
+      full_name: member.full_name,
+      position: member.position,
+      biography: member.biography || "",
+      image_url: member.image_url || "",
+      image_alt: member.image_alt || "",
+      display_order: member.display_order ?? 0,
+      is_published: member.is_published,
+    });
+    setMessage("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const uploadPhoto = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage("Photo must be 5 MB or smaller.");
+      event.target.value = "";
+      return;
+    }
     setSaving(true);
     setMessage("");
-    try {
-      if (editing === "new") {
-        const maxOrder = members.length > 0 ? Math.max(...members.map(m => m.display_order)) : 0;
-        const { error } = await supabase.from("team_members").insert({
-          ...formData,
-          display_order: maxOrder + 1,
-          is_active: true
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("team_members").update(formData).eq("id", editing);
-        if (error) throw error;
-      }
-      setMessage("Saved successfully");
-      setEditing(null);
-      load();
-    } catch (error) {
-      setMessage(error.message);
+    const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]+/g, "-");
+    const path = `team/${Date.now()}-${safeName}`;
+    const { error } = await supabase.storage.from("site-media").upload(path, file, { cacheControl: "3600", upsert: false });
+    if (error) setMessage(error.message);
+    else {
+      const { data } = supabase.storage.from("site-media").getPublicUrl(path);
+      setForm((current) => ({ ...current, image_url: data.publicUrl }));
+      setMessage("Photo uploaded. Save the profile to apply it.");
     }
     setSaving(false);
+    event.target.value = "";
   };
 
-  const toggleActive = async (id, isActive) => {
-    await supabase.from("team_members").update({ is_active: !isActive }).eq("id", id);
+  const save = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setMessage("");
+    const payload = {
+      full_name: form.full_name.trim(),
+      position: form.position.trim(),
+      biography: form.biography.trim(),
+      image_url: form.image_url.trim() || null,
+      image_alt: form.image_alt.trim() || null,
+      display_order: Number(form.display_order) || 0,
+      is_published: form.is_published,
+    };
+    const operation = editingId
+      ? supabase.from("team_members").update(payload).eq("id", editingId)
+      : supabase.from("team_members").insert(payload);
+    const { error } = await operation;
+    setSaving(false);
+    if (error) return setMessage(error.message);
+    setMessage(editingId ? "Team member updated." : "Team member added.");
+    setEditingId(null);
+    setForm({ ...emptyMember, display_order: members.length + 1 });
     load();
   };
 
-  const deleteMember = async (id) => {
-    if (!confirm("Are you sure you want to delete this team member?")) return;
-    await supabase.from("team_members").delete().eq("id", id);
-    load();
+  const remove = async (member) => {
+    if (!window.confirm(`Remove ${member.full_name} from the team?`)) return;
+    setSaving(true);
+    const { error } = await supabase.from("team_members").delete().eq("id", member.id);
+    setSaving(false);
+    setMessage(error ? error.message : "Team member removed.");
+    if (!error) load();
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-slate-500">Loading team members...</div>
-      </div>
-    );
-  }
+  if (loading) return <div className="py-12 text-slate-500">Loading team members...</div>;
 
   return (
     <div>
-      <header className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-950">Team Management</h1>
-          <p className="mt-2 text-slate-600">Manage team members displayed on the website.</p>
-        </div>
-        <button
-          onClick={() => startEdit()}
-          className="inline-flex items-center gap-2 bg-emerald-800 px-5 py-2.5 font-bold text-white hover:bg-emerald-900"
-        >
-          <Plus className="w-4 h-4" />
-          Add Member
-        </button>
+      <header className="mb-8">
+        <h1 className="text-3xl font-black tracking-tight text-slate-950">Team Management</h1>
+        <p className="mt-2 text-slate-600">Add team profiles, upload photographs, and control what appears publicly.</p>
       </header>
 
-      {editing && (
-        <div className="mb-6 border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-black text-slate-950 mb-4">
-            {editing === "new" ? "Add Team Member" : "Edit Team Member"}
-          </h2>
-          <div className="grid gap-4">
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Name</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full border border-slate-300 bg-white px-3 py-2 text-sm"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Role</label>
-              <input
-                type="text"
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                className="w-full border border-slate-300 bg-white px-3 py-2 text-sm"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Description</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full border border-slate-300 bg-white px-3 py-2 text-sm"
-                rows="3"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Image URL (optional)</label>
-              <input
-                type="text"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                className="w-full border border-slate-300 bg-white px-3 py-2 text-sm"
-                placeholder="https://..."
-              />
-            </div>
+      <div className="grid gap-6 xl:grid-cols-[minmax(20rem,28rem)_1fr]">
+        <form onSubmit={save} className="h-fit border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-xl font-black text-slate-950">{editingId ? "Edit team member" : "Add team member"}</h2>
+            {editingId && <button type="button" onClick={reset} className="text-sm font-bold text-emerald-800 hover:underline">Add new</button>}
           </div>
-          {message && (
-            <p className={`mt-4 p-3 text-sm font-semibold ${message.includes("Error") ? "bg-red-50 text-red-800" : "bg-emerald-50 text-emerald-800"}`}>
-              {message}
-            </p>
-          )}
-          <div className="mt-4 flex gap-3">
-            <button
-              onClick={save}
-              disabled={saving}
-              className="bg-emerald-800 px-5 py-2 font-bold text-white hover:bg-emerald-900 disabled:opacity-60"
-            >
-              {saving ? "Saving..." : "Save"}
-            </button>
-            <button
-              onClick={() => setEditing(null)}
-              className="px-5 py-2 font-bold text-slate-600 hover:text-slate-900"
-            >
-              Cancel
-            </button>
+          <label className="mt-5 block text-sm font-bold text-slate-700">Full name<input className={inputClass} required minLength="2" maxLength="120" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></label>
+          <label className="mt-4 block text-sm font-bold text-slate-700">Position or role<input className={inputClass} required minLength="2" maxLength="160" value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} /></label>
+          <label className="mt-4 block text-sm font-bold text-slate-700">Short biography<textarea className={inputClass} rows="4" maxLength="2000" value={form.biography} onChange={(e) => setForm({ ...form, biography: e.target.value })} /></label>
+          <div className="mt-5 grid gap-4 sm:grid-cols-[7rem_1fr]">
+            <div className="aspect-[4/5] overflow-hidden bg-slate-100">{form.image_url ? <img src={form.image_url} alt="Profile preview" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center"><UserRound className="h-8 w-8 text-slate-400" /></div>}</div>
+            <div><label className="inline-flex min-h-11 cursor-pointer items-center gap-2 bg-slate-950 px-4 text-sm font-bold text-white hover:bg-slate-800"><Upload className="h-4 w-4" />Upload photo<input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={saving} onChange={uploadPhoto} /></label><p className="mt-2 text-xs leading-5 text-slate-500">JPG, PNG, or WebP. Maximum 5 MB.</p></div>
           </div>
-        </div>
-      )}
+          <label className="mt-4 block text-sm font-bold text-slate-700">Image URL<input className={inputClass} type="url" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} /></label>
+          <label className="mt-4 block text-sm font-bold text-slate-700">Image description<input className={inputClass} maxLength="240" value={form.image_alt} onChange={(e) => setForm({ ...form, image_alt: e.target.value })} /></label>
+          <label className="mt-4 block text-sm font-bold text-slate-700">Display order<input className={inputClass} type="number" min="0" value={form.display_order} onChange={(e) => setForm({ ...form, display_order: e.target.value })} /></label>
+          <label className="mt-5 flex items-center gap-3 text-sm font-bold text-slate-700"><input type="checkbox" checked={form.is_published} onChange={(e) => setForm({ ...form, is_published: e.target.checked })} className="h-5 w-5 accent-emerald-800" />Show on public website</label>
+          {message && <p role="status" className="mt-4 bg-slate-100 p-3 text-sm font-semibold text-slate-700">{message}</p>}
+          <button disabled={saving} className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 bg-emerald-800 px-5 font-bold text-white hover:bg-emerald-900 disabled:opacity-60">{editingId ? <Save className="h-4 w-4" /> : <Plus className="h-4 w-4" />}{saving ? "Saving..." : editingId ? "Save changes" : "Add team member"}</button>
+        </form>
 
-      <div className="overflow-x-auto border border-slate-200 bg-white shadow-sm">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-            <tr>
-              <th className="p-4">Name</th>
-              <th className="p-4">Role</th>
-              <th className="p-4">Description</th>
-              <th className="p-4">Order</th>
-              <th className="p-4">Active</th>
-              <th className="p-4">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {members.map((member) => (
-              <tr key={member.id} className="align-top">
-                <td className="p-4 font-bold text-slate-900">{member.name}</td>
-                <td className="p-4 text-slate-600">{member.role}</td>
-                <td className="p-4 text-slate-600 max-w-xs truncate">{member.description}</td>
-                <td className="p-4 text-slate-600">{member.display_order}</td>
-                <td className="p-4">
-                  <button
-                    onClick={() => toggleActive(member.id, member.is_active)}
-                    className={`px-3 py-1 rounded-full text-xs font-bold ${member.is_active ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"}`}
-                  >
-                    {member.is_active ? "Active" : "Inactive"}
-                  </button>
-                </td>
-                <td className="p-4">
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => startEdit(member)}
-                      className="text-emerald-800 hover:underline text-xs font-bold"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => deleteMember(member.id)}
-                      className="text-red-700 hover:underline text-xs font-bold"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {!members.length && (
-              <tr>
-                <td colSpan={6} className="p-12 text-center text-slate-500">
-                  No team members found. Add your first member to get started.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <section className="border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex items-end justify-between gap-4"><div><h2 className="text-xl font-black text-slate-950">Current team</h2><p className="mt-1 text-sm text-slate-500">Published profiles appear on the website.</p></div><span className="text-sm font-bold text-slate-500">{members.length} total</span></div>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+            {members.map((member) => <article key={member.id} className="overflow-hidden border border-slate-200">
+              <div className="aspect-[4/3] bg-slate-100">{member.image_url ? <img src={member.image_url} alt={member.image_alt || ""} className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center"><UserRound className="h-9 w-9 text-slate-400" /></div>}</div>
+              <div className="p-4"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="break-words font-black text-slate-950">{member.full_name}</h3><p className="mt-1 text-sm font-semibold text-emerald-800">{member.position}</p></div><span className={`shrink-0 px-2 py-1 text-[11px] font-bold uppercase ${member.is_published ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"}`}>{member.is_published ? "Live" : "Draft"}</span></div>{member.biography && <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">{member.biography}</p>}<div className="mt-4 flex gap-2"><button type="button" onClick={() => startEdit(member)} className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 border border-slate-300 px-3 text-sm font-bold text-slate-700 hover:bg-slate-50"><Pencil className="h-4 w-4" />Edit</button><button type="button" onClick={() => remove(member)} disabled={saving} className="grid h-10 w-10 place-items-center text-red-700 hover:bg-red-50" aria-label={`Remove ${member.full_name}`}><Trash2 className="h-4 w-4" /></button></div></div>
+            </article>)}
+            {!members.length && <div className="border border-dashed border-slate-300 p-10 text-center md:col-span-2 2xl:col-span-3"><UserRound className="mx-auto h-9 w-9 text-slate-400" /><p className="mt-4 font-bold text-slate-700">No team members yet</p><p className="mt-1 text-sm text-slate-500">Add the first profile with the form.</p></div>}
+          </div>
+        </section>
       </div>
     </div>
   );
