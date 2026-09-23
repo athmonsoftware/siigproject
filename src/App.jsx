@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart,
@@ -10,131 +10,109 @@ import {
   Award,
   Mail,
   Phone,
+  MapPin,
   Send,
   Menu,
   X,
+  ArrowUp,
 } from "lucide-react";
 import { useSiteContent } from "./hooks/useSiteContent";
 import { useTeamMembers } from "./hooks/useTeamMembers";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 
-const Navbar = ({ showTeam }) => {
+const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState("home");
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const navLinks = [
-    { name: "Home", href: "#home", id: "home" },
     { name: "Services", href: "#services" },
     { name: "Training", href: "#training" },
     { name: "About", href: "#about" },
-    ...(showTeam ? [{ name: "Team", href: "#team" }] : []),
     { name: "Community", href: "#community" },
-    { name: "Contact", href: "#contact", id: "contact" },
+    { name: "Team", href: "#team" },
   ];
 
-  useEffect(() => {
-    const sectionIds = navLinks.map((link) => link.id || link.href.slice(1));
-    const updateProgress = () => {
-      const available = document.documentElement.scrollHeight - window.innerHeight;
-      setScrollProgress(available > 0 ? Math.min(100, (window.scrollY / available) * 100) : 0);
-    };
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (visible) setActiveSection(visible.target.id);
-      },
-      { rootMargin: "-24% 0px -60% 0px", threshold: [0.05, 0.2, 0.5] },
-    );
-    sectionIds.forEach((id) => {
-      const section = document.getElementById(id);
-      if (section) observer.observe(section);
-    });
-    updateProgress();
-    window.addEventListener("scroll", updateProgress, { passive: true });
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("scroll", updateProgress);
-    };
-  }, []);
-
-  const navigate = (id) => {
-    setActiveSection(id);
-    setIsOpen(false);
-  };
-
   return (
-    <nav aria-label="Primary navigation" className="fixed inset-x-0 top-0 z-50 border-b border-white/15 bg-[#123d2f]/95 shadow-[0_12px_35px_rgba(0,0,0,0.2)] backdrop-blur-xl">
-      <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-        <a href="#home" onClick={() => navigate("home")} className="flex min-w-0 items-center gap-3" aria-label="SIIG home">
-          <img src="/logo.png" alt="" className="h-11 w-11 shrink-0 object-contain" />
-          <div className="min-w-0">
-            <div className="text-lg font-black leading-none tracking-[0.12em] text-white">SIIG</div>
-            <div className="mt-1 hidden truncate text-[9px] font-bold uppercase tracking-[0.16em] text-white/55 sm:block">Safety Innovations Impact Group</div>
-          </div>
-        </a>
-
-        <div className="hidden items-center border border-white/15 bg-black/10 p-1 md:flex" aria-label="Website sections">
-          {navLinks.map((link) => {
-            const id = link.id || link.href.slice(1);
-            const active = activeSection === id;
-            return (
-              <a
-                key={link.name}
-                href={link.href}
-                aria-current={active ? "page" : undefined}
-                className={`relative px-3 py-2 text-xs font-bold uppercase tracking-[0.08em] transition-colors lg:px-4 ${active ? "bg-white text-[#123d2f]" : "text-white/70 hover:bg-white/10 hover:text-white"}`}
-                onClick={() => navigate(id)}
-              >
-                {link.name}
-              </a>
-            );
-          })}
+    <nav
+      className={`fixed top-0 left-0 right-0 w-full max-w-6xl mx-auto px-4 backdrop-blur-md border rounded-2xl p-4 flex justify-between items-center z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-brand-green/95 border-white/30 shadow-xl my-0"
+          : "bg-white/10 border-white/20 my-6"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <img src="/logo.png" alt="SIIG Logo" className="h-12 w-auto" />
+        <div className="hidden sm:block">
+          <div className="font-bold text-xl tracking-wide text-white">SIIG</div>
         </div>
-
-        <button
-          className="grid h-11 w-11 place-items-center border border-white/25 text-white transition hover:bg-white/10 md:hidden"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-expanded={isOpen}
-          aria-controls="mobile-navigation"
-          aria-label={isOpen ? "Close navigation" : "Open navigation"}
-        >
-          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 h-[2px] bg-white/10" aria-hidden="true">
-        <div className="h-full bg-brand-red transition-[width] duration-150" style={{ width: `${scrollProgress}%` }} />
+      {/* Desktop Navigation */}
+      <div className="hidden md:flex space-x-8 text-sm text-gray-300">
+        {navLinks.map((link) => (
+          <a
+            key={link.name}
+            href={link.href}
+            className="hover:text-white transition relative group"
+            onClick={() => setIsOpen(false)}
+          >
+            {link.name}
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-red transition-all duration-300 group-hover:w-full"></span>
+          </a>
+        ))}
       </div>
 
+      <a
+        href="#contact"
+        className="hidden md:block bg-brand-green hover:bg-brand-green/80 text-white px-4 py-2 rounded-xl text-sm font-semibold transition shadow-lg shadow-brand-green/20"
+      >
+        Contact Us
+      </a>
+
+      {/* Mobile Menu Button */}
+      <button
+        className="md:hidden p-2 text-white"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+      </button>
+
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            id="mobile-navigation"
-            initial={{ opacity: 0, y: -12 }}
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.22 }}
-            className="absolute inset-x-0 top-full border-b border-white/15 bg-[#123d2f] p-4 shadow-2xl md:hidden"
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="absolute top-full left-0 right-0 mt-2 backdrop-blur-xl bg-brand-green/95 border border-white/20 rounded-2xl p-6 md:hidden"
           >
-            <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2">
-              {navLinks.map((link) => {
-                const id = link.id || link.href.slice(1);
-                const active = activeSection === id;
-                return (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    aria-current={active ? "page" : undefined}
-                    className={`border px-4 py-4 text-sm font-bold uppercase tracking-[0.08em] transition ${active ? "border-white bg-white text-[#123d2f]" : "border-white/15 text-white/80 hover:bg-white/10"}`}
-                    onClick={() => navigate(id)}
-                  >
-                    <span className="mr-2 text-white/35">0{navLinks.indexOf(link) + 1}</span>{link.name}
-                  </a>
-                );
-              })}
+            <div className="flex flex-col space-y-4">
+              {navLinks.map((link) => (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  className="text-white hover:text-brand-red transition text-lg font-medium"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {link.name}
+                </a>
+              ))}
+              <a
+                href="#contact"
+                className="bg-brand-green hover:bg-brand-green/80 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg shadow-brand-green/20 text-center"
+                onClick={() => setIsOpen(false)}
+              >
+                Contact Us
+              </a>
             </div>
           </motion.div>
         )}
@@ -145,7 +123,9 @@ const Navbar = ({ showTeam }) => {
 
 const Hero = ({ content }) => {
   return (
-    <section id="home" className="relative min-h-screen scroll-mt-20 flex items-center justify-center overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/90 to-brand-green/80 text-white pt-28 pb-12">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/90 to-brand-green/80 text-white pt-32 pb-12">
+      {/* Glassmorphic Navbar */}
+      <Navbar />
 
       {/* Animated Background Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -185,7 +165,7 @@ const Hero = ({ content }) => {
         transition={{ duration: 0.8 }}
         className="relative z-10 max-w-4xl mx-auto px-4 text-center mt-12"
       >
-        <div className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-16 rounded-3xl shadow-2xl">
+        <div className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-16 rounded-3xl shadow-2xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div>
               <span className="inline-block bg-white/15 text-brand-red text-xs px-3 py-1 rounded-full uppercase tracking-widest font-semibold mb-6 border border-white/10">
@@ -198,9 +178,7 @@ const Hero = ({ content }) => {
                 transition={{ delay: 0.2, duration: 0.8 }}
                 className="text-4xl md:text-6xl font-black tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400 leading-tight"
               >
-                {content.title.split("\n").map((line, index) => (
-                  <React.Fragment key={line}>{index > 0 && <br />}{line}</React.Fragment>
-                ))}
+                {content.title.split("\n").map((line, index) => <React.Fragment key={line}>{index > 0 && <br />}{line}</React.Fragment>)}
               </motion.h1>
 
               <motion.p
@@ -241,9 +219,9 @@ const Hero = ({ content }) => {
               className="relative"
             >
               <img
-                src="/images/siig-team-photo.png"
-                alt="SIIG team members beside a safety display"
-                className="rounded-2xl shadow-2xl w-full max-h-[32rem] object-contain mx-auto"
+                src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&h=500&fit=crop"
+                alt="Safety Training"
+                className="rounded-2xl shadow-2xl w-full h-auto object-cover hue-rotate-15"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-green/50 to-transparent rounded-2xl"></div>
             </motion.div>
@@ -261,7 +239,7 @@ const ServiceCard = ({ icon: Icon, title, description, features, delay }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay, duration: 0.6 }}
-      className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 rounded-3xl shadow-xl group hover:border-brand-green/50 transition-all duration-300"
+      className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl group hover:border-brand-green/50 transition-all duration-300"
     >
       <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-brand-green to-brand-red mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-brand-green/20">
         <Icon className="w-8 h-8 text-white" />
@@ -286,13 +264,13 @@ const ServiceCard = ({ icon: Icon, title, description, features, delay }) => {
 
 const Services = () => {
   return (
-    <section id="services" className="relative overflow-hidden bg-brand-green px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
+    <section id="services" className="py-24 px-4 relative bg-brand-green">
       <div className="max-w-7xl mx-auto">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-10 text-center text-4xl font-bold leading-tight text-white sm:mb-14 md:text-5xl lg:mb-16"
+          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
         >
           Our Services
         </motion.h2>
@@ -303,7 +281,7 @@ const Services = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl mb-12 hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12 hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
         >
           <div className="flex items-center gap-4 mb-6">
             <div className="p-3 bg-brand-green/30 rounded-xl">
@@ -388,7 +366,7 @@ const Services = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl mb-12 hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
+          className="backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12 hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
         >
           <div className="flex items-center gap-4 mb-6">
             <div className="p-3 bg-brand-green/30 rounded-xl">
@@ -468,7 +446,7 @@ const Services = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl mb-12 hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12 hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
         >
           <div className="flex items-center gap-4 mb-6">
             <div className="p-3 bg-brand-green/30 rounded-xl">
@@ -552,7 +530,7 @@ const Services = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
         >
           <div className="flex items-center gap-4 mb-6">
             <div className="p-3 bg-brand-green/30 rounded-xl">
@@ -690,38 +668,6 @@ const Services = () => {
               </li>
             </ul>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-            <div>
-              <h4 className="text-lg font-bold text-white mb-4">
-                Why Event Organisers Choose Us
-              </h4>
-              <ul className="space-y-2 text-gray-400">
-                {[
-                  "Visible safety presence for peace of mind",
-                  "Reduced liability risk",
-                  "Faster response times",
-                  "Professional guest care",
-                  "Support for vulnerable attendees",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-bold text-white mb-4">
-                Ideal for Events Such As
-              </h4>
-              <p className="text-gray-400 leading-relaxed">
-                Corporate events, school functions, community gatherings,
-                sporting events, festivals, private celebrations, and religious
-                events.
-              </p>
-            </div>
-          </div>
         </motion.div>
       </div>
     </section>
@@ -732,7 +678,7 @@ const TrainingApproach = () => {
   return (
     <section
       id="training"
-      className="relative overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
+      className="py-24 px-4 bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 relative overflow-hidden"
     >
       {/* Decorative background elements */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-red/10 rounded-full blur-3xl animate-pulse"></div>
@@ -746,7 +692,7 @@ const TrainingApproach = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-10 text-center text-4xl font-bold leading-tight text-white sm:mb-14 md:text-5xl lg:mb-16"
+          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
         >
           Our Training Approach
         </motion.h2>
@@ -756,7 +702,7 @@ const TrainingApproach = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl mb-12"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12"
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <motion.div
@@ -767,9 +713,9 @@ const TrainingApproach = () => {
               className="relative"
             >
               <img
-                src="/images/siig-team-photo.png"
-                alt="SIIG team members at a community safety event"
-                className="rounded-2xl shadow-2xl w-full max-h-[32rem] object-contain mx-auto"
+                src="/images/first-aid-cpr-training.jpg"
+                alt="Participant practising CPR during a first aid training session"
+                className="rounded-2xl shadow-2xl w-full h-auto object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-green/30 to-transparent rounded-2xl"></div>
             </motion.div>
@@ -826,7 +772,7 @@ const TrainingApproach = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl"
         >
           <h3 className="text-2xl font-bold text-white mb-6">Who We Serve</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -869,11 +815,61 @@ const TrainingApproach = () => {
   );
 };
 
+const ImpactAttribute = ({ icon: Icon, title, description }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.4 }}
+    className="text-center"
+  >
+    <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/20 bg-white/10">
+      <Icon className="h-8 w-8 text-brand-red" aria-hidden="true" />
+    </div>
+    <h3 className="text-xl font-bold text-white md:text-2xl">{title}</h3>
+    <p className="mx-auto mt-3 max-w-xs text-base leading-relaxed text-gray-300">
+      {description}
+    </p>
+  </motion.div>
+);
+
+const Impact = () => {
+  return (
+    <section className="py-24 px-4 bg-brand-green">
+      <div className="max-w-7xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-2xl"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
+            <ImpactAttribute
+              icon={Shield}
+              title="Practical Training"
+              description="Hands-on instruction designed for confident action in real emergencies."
+            />
+            <ImpactAttribute
+              icon={Target}
+              title="Scenario-Based Learning"
+              description="Repeated practice turns safety knowledge into usable response skills."
+            />
+            <ImpactAttribute
+              icon={Users}
+              title="Workplace & Community Focus"
+              description="Training shaped around the people, setting, and risks of each organisation."
+            />
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
 const About = ({ content }) => {
   return (
     <section
       id="about"
-      className="relative overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
+      className="py-24 px-4 bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 relative overflow-hidden"
     >
       {/* Decorative background elements */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-brand-red/10 rounded-full blur-3xl"></div>
@@ -884,7 +880,7 @@ const About = ({ content }) => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-10 text-center text-4xl font-bold leading-tight text-white sm:mb-14 md:text-5xl lg:mb-16"
+          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
         >
           {content.heading}
         </motion.h2>
@@ -894,7 +890,7 @@ const About = ({ content }) => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl mb-12"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12"
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div>
@@ -920,9 +916,9 @@ const About = ({ content }) => {
               className="relative"
             >
               <img
-                src="/images/siig-team-photo.png"
-                alt="SIIG team members beside a safety display"
-                className="rounded-2xl shadow-2xl w-full max-h-[32rem] object-contain mx-auto"
+                src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&h=400&fit=crop"
+                alt="Safety Training"
+                className="rounded-2xl shadow-2xl w-full h-auto object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-green/30 to-transparent rounded-2xl"></div>
             </motion.div>
@@ -935,7 +931,7 @@ const About = ({ content }) => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 rounded-3xl shadow-xl"
+            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
           >
             <div className="flex items-center gap-4 mb-6">
               <div className="p-3 bg-brand-green/30 rounded-xl">
@@ -955,7 +951,7 @@ const About = ({ content }) => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 rounded-3xl shadow-xl"
+            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
           >
             <div className="flex items-center gap-4 mb-6">
               <div className="p-3 bg-brand-green/30 rounded-xl">
@@ -976,10 +972,10 @@ const About = ({ content }) => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl"
         >
           <h3 className="text-2xl font-bold text-white mb-6">
-            Our Values (PIIPE)
+            Our Values (CAPE)
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex items-start gap-4">
@@ -1058,7 +1054,7 @@ const CommunityInitiative = () => {
   return (
     <section
       id="community"
-      className="relative overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
+      className="py-24 px-4 bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 relative overflow-hidden"
     >
       {/* Decorative background elements */}
       <div className="absolute top-0 left-1/2 w-96 h-96 bg-brand-red/10 rounded-full blur-3xl animate-pulse"></div>
@@ -1072,7 +1068,7 @@ const CommunityInitiative = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-10 text-center text-4xl font-bold leading-tight text-white sm:mb-14 md:text-5xl lg:mb-16"
+          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
         >
           Community Medical Support Initiative
         </motion.h2>
@@ -1082,7 +1078,7 @@ const CommunityInitiative = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl mb-12"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12"
         >
           <h3 className="text-2xl font-bold text-white mb-6">
             Supporting Health Through Essential Equipment Donations
@@ -1112,7 +1108,7 @@ const CommunityInitiative = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 rounded-3xl shadow-xl"
+            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
           >
             <h3 className="text-2xl font-bold text-white mb-6">
               What We Provide
@@ -1180,7 +1176,7 @@ const CommunityInitiative = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 rounded-3xl shadow-xl"
+            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
           >
             <h3 className="text-2xl font-bold text-white mb-6">
               Where We Focus
@@ -1245,7 +1241,7 @@ const CommunityInitiative = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl"
         >
           <h3 className="text-2xl font-bold text-white mb-6">Our Commitment</h3>
           <p className="text-gray-300 leading-relaxed mb-6">
@@ -1273,92 +1269,6 @@ const CommunityInitiative = () => {
   );
 };
 
-const Team = ({ members }) => {
-  if (!members.length) return null;
-
-  return (
-    <section
-      id="team"
-      className="relative overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
-    >
-      <div className="pointer-events-none absolute left-1/3 top-0 h-72 w-72 rounded-full bg-brand-red/10 blur-3xl" />
-      <div className="relative z-10 mx-auto max-w-7xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.4 }}
-          className="mx-auto mb-10 max-w-3xl text-center sm:mb-14 lg:mb-16"
-        >
-          <p className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-brand-red">The people behind the mission</p>
-          <h2 className="text-4xl font-bold leading-tight text-white md:text-5xl">Meet Our Team</h2>
-          <p className="mt-5 text-gray-300">Experienced professionals committed to practical training, emergency readiness, and safer communities.</p>
-        </motion.div>
-
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:gap-8">
-          {members.map((member, index) => (
-            <motion.article
-              key={member.id}
-              initial={{ opacity: 0, y: 28 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }}
-              transition={{ duration: 0.5, delay: Math.min(index * 0.08, 0.24) }}
-              whileHover={{ y: -6 }}
-              className="group min-w-0 overflow-hidden rounded-3xl border border-white/20 bg-white/10 shadow-xl backdrop-blur-xl"
-            >
-              <div className="relative aspect-[4/5] overflow-hidden bg-white/5">
-                {member.image_url ? (
-                  <img
-                    src={member.image_url}
-                    alt={member.image_alt || `${member.full_name}, ${member.position}`}
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="grid h-full place-items-center bg-gradient-to-br from-white/10 to-white/5 text-5xl font-black text-white/70">
-                    {member.full_name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}
-                  </div>
-                )}
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-brand-green/90 via-transparent to-transparent" />
-              </div>
-              <div className="p-5 sm:p-6">
-                <h3 className="text-2xl font-bold text-white">{member.full_name}</h3>
-                <p className="mt-1 font-semibold text-brand-red">{member.position}</p>
-                {member.biography && <p className="mt-4 text-gray-300">{member.biography}</p>}
-              </div>
-            </motion.article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const ProfileCallToAction = ({ content }) => (
-  <section className="bg-brand-green px-4 py-16 sm:px-6 sm:py-20">
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.45 }}
-      className="mx-auto max-w-5xl overflow-hidden rounded-3xl border border-white/20 bg-white/10 p-6 text-center shadow-xl backdrop-blur-xl sm:p-8 md:p-12"
-    >
-      <p className="text-brand-red font-semibold uppercase tracking-widest mb-4">
-        {content.eyebrow}
-      </p>
-      <h2 className="mb-8 text-3xl font-bold leading-tight text-white md:text-5xl">
-        {content.title}
-      </h2>
-      <a
-        href="#contact"
-        className="inline-flex min-h-12 items-center justify-center gap-2 bg-white px-8 py-4 font-bold text-black shadow-lg transition duration-300 hover:-translate-y-1 hover:bg-gray-200 hover:shadow-xl active:translate-y-0"
-      >
-        {content.button} <ArrowRight className="w-5 h-5" />
-      </a>
-    </motion.div>
-  </section>
-);
-
 const Contact = ({ content }) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -1367,8 +1277,11 @@ const Contact = ({ content }) => {
     company: "",
     message: "",
   });
-
-  const [submitState, setSubmitState] = useState({ loading: false, message: "", error: false });
+  const [submitState, setSubmitState] = useState({
+    loading: false,
+    message: "",
+    error: false,
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1376,23 +1289,34 @@ const Contact = ({ content }) => {
       setSubmitState({ loading: true, message: "", error: false });
       const { error } = await supabase.from("enquiries").insert(formData);
       if (!error) {
-        setFormData({ name: "", email: "", phone: "", company: "", message: "" });
-        setSubmitState({ loading: false, message: "Thank you. Your message has been received.", error: false });
-        return;
+        setSubmitState({
+          loading: false,
+          message: "Thank you for your message! We will get back to you soon.",
+          error: false,
+        });
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          company: "",
+          message: "",
+        });
+      } else {
+        setSubmitState({
+          loading: false,
+          message: "Error submitting form. Please try again.",
+          error: true,
+        });
       }
-      setSubmitState({ loading: false, message: "We could not submit your message. Please use the email option instead.", error: true });
-      return;
+    } else {
+      // Fallback to mailto if Supabase not configured
+      const mailtoLink = `mailto:${content.email}?subject=Enquiry from ${encodeURIComponent(
+        formData.name
+      )}&body=${encodeURIComponent(
+        `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nCompany: ${formData.company}\n\nMessage:\n${formData.message}`
+      )}`;
+      window.location.href = mailtoLink;
     }
-    const subject = `SIIG enquiry from ${formData.name}`;
-    const body = [
-      `Name: ${formData.name}`,
-      `Email: ${formData.email}`,
-      `Phone: ${formData.phone || "Not provided"}`,
-      `Organisation: ${formData.company || "Not provided"}`,
-      "",
-      formData.message,
-    ].join("\n");
-    window.location.href = `mailto:safetyinnovations.ltd@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
   const handleChange = (e) => {
@@ -1400,110 +1324,84 @@ const Contact = ({ content }) => {
   };
 
   return (
-    <section id="contact" className="overflow-hidden bg-brand-green px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
-      <div className="mx-auto max-w-7xl">
+    <section id="contact" className="py-24 px-4 bg-brand-green">
+      <div className="max-w-7xl mx-auto">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-10 text-center text-4xl font-bold text-white sm:mb-14 md:text-5xl lg:mb-16"
+          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
         >
           {content.heading}
         </motion.h2>
 
-        <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.12 }}
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            whileHover={{ y: -4 }}
-            className="min-w-0 overflow-hidden rounded-3xl border border-white/20 bg-white/10 p-5 shadow-xl backdrop-blur-xl sm:p-8"
+            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
           >
             <h3 className="text-2xl font-bold text-white mb-6">Get in Touch</h3>
             <p className="text-gray-300 leading-relaxed mb-8">
               {content.intro}
             </p>
 
-            <div className="min-w-0 space-y-6">
-              <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
-                <div className="shrink-0 rounded-xl bg-brand-green/30 p-3">
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-brand-green/30 rounded-xl">
                   <Phone className="w-6 h-6 text-brand-red" />
                 </div>
-                <div className="min-w-0 pt-0.5 sm:pt-0">
+                <div>
                   <p className="text-gray-400 text-sm">Phone</p>
-                  <a
-                    href={`tel:${content.phone_link}`}
-                    className="block max-w-full break-words font-semibold text-white transition hover:text-brand-red"
-                  >
-                    {content.phone}
-                  </a>
+                  <a href={`tel:${content.phone_link}`} className="text-white font-semibold hover:underline">{content.phone}</a>
                 </div>
               </div>
 
-              <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
-                <div className="shrink-0 rounded-xl bg-brand-green/30 p-3">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-brand-green/30 rounded-xl">
                   <Mail className="w-6 h-6 text-brand-red" />
                 </div>
-                <div className="min-w-0 pt-0.5 sm:pt-0">
+                <div>
                   <p className="text-gray-400 text-sm">Email</p>
-                  <a
-                    href={`mailto:${content.email}`}
-                    className="block max-w-full break-all font-semibold text-white transition sm:break-words hover:text-brand-red"
-                  >
-                    {content.email}
-                  </a>
+                  <a href={`mailto:${content.email}`} className="text-white font-semibold hover:underline">{content.email}</a>
                 </div>
               </div>
 
-              <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
-                <div className="shrink-0 rounded-xl bg-brand-green/30 p-3">
-                  <Phone className="w-6 h-6 text-brand-red" />
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-brand-green/30 rounded-xl">
+                  <MapPin className="w-6 h-6 text-brand-red" />
                 </div>
-                <div className="min-w-0 pt-0.5 sm:pt-0">
-                  <p className="text-gray-400 text-sm">WhatsApp</p>
-                  <a
-                    href={`https://wa.me/${content.phone_link.replace(/\D/g, "")}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="block max-w-full break-words font-semibold text-white transition hover:text-brand-red"
-                  >
-                    {content.phone}
-                  </a>
+                <div>
+                  <p className="text-gray-400 text-sm">Location</p>
+                  <p className="text-white font-semibold">Accra, Ghana</p>
                 </div>
               </div>
 
-              <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
-                <div className="shrink-0 rounded-xl bg-brand-green/30 p-3">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-brand-green/30 rounded-xl">
                   <Users className="w-6 h-6 text-brand-red" />
                 </div>
-                <div className="min-w-0 pt-0.5 sm:pt-0">
+                <div>
                   <p className="text-gray-400 text-sm">Instagram</p>
-                  <a
-                    href={content.instagram_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="block max-w-full break-all font-semibold text-white transition sm:break-words hover:text-brand-red"
-                  >
-                    {content.instagram}
-                  </a>
+                  <a href={content.instagram_url} target="_blank" rel="noreferrer" className="text-white font-semibold hover:underline">{content.instagram}</a>
                 </div>
               </div>
             </div>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.08 }}
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            whileHover={{ y: -4 }}
-            className="min-w-0 overflow-hidden rounded-3xl border border-white/20 bg-white/10 p-5 shadow-xl backdrop-blur-xl sm:p-8"
+            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
           >
             <h3 className="text-2xl font-bold text-white mb-6">
               Send us a Message
             </h3>
-            <form onSubmit={handleSubmit} className="min-w-0 space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-gray-300 text-sm mb-2">
                   Full Name
@@ -1577,17 +1475,75 @@ const Contact = ({ content }) => {
                 />
               </div>
 
-              {submitState.message && <p role="status" className={`p-3 text-sm font-semibold ${submitState.error ? "bg-red-950/40 text-red-200" : "bg-emerald-950/50 text-emerald-100"}`}>{submitState.message}</p>}
               <button
                 type="submit"
                 disabled={submitState.loading}
-                className="flex min-h-12 w-full items-center justify-center gap-2 bg-brand-green px-6 py-3 font-semibold text-white shadow-lg shadow-brand-green/20 transition duration-300 hover:-translate-y-0.5 hover:bg-brand-green/80 hover:shadow-xl active:translate-y-0 disabled:translate-y-0 disabled:opacity-60"
+                className="w-full bg-brand-green hover:bg-brand-green/80 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg shadow-brand-green/20 flex items-center justify-center gap-2 disabled:opacity-60"
               >
-                {submitState.loading ? "Sending…" : isSupabaseConfigured ? "Send Message" : "Prepare Email"}
+                {submitState.loading ? "Sending..." : "Send Message"}
                 <Send className="w-5 h-5" />
               </button>
+              {submitState.message && (
+                <p
+                  className={`text-center text-sm ${
+                    submitState.error ? "text-red-400" : "text-green-400"
+                  }`}
+                >
+                  {submitState.message}
+                </p>
+              )}
             </form>
           </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const Team = ({ members }) => {
+  return (
+    <section id="team" className="py-24 px-4 bg-brand-green">
+      <div className="max-w-7xl mx-auto">
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
+        >
+          Our Team
+        </motion.h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {members.map((member, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1, duration: 0.5 }}
+              className="backdrop-blur-xl bg-white/10 border border-white/20 p-6 rounded-3xl shadow-xl group hover:border-brand-green/50 transition-all duration-300 text-center"
+            >
+              <div className="w-28 h-28 mx-auto mb-5 overflow-hidden rounded-full bg-gradient-to-br from-brand-green to-brand-red flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                {member.image_url ? (
+                  <img src={member.image_url} alt={member.image_alt || `${member.full_name}, ${member.position}`} className="h-full w-full object-cover" loading="lazy" />
+                ) : (
+                  <span className="text-3xl font-black text-white">{member.full_name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span>
+                )}
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                {member.full_name}
+              </h3>
+              <p className="text-brand-red font-semibold mb-3">{member.position}</p>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                {member.biography}
+              </p>
+            </motion.div>
+          ))}
+          {!members.length && (
+            <div className="md:col-span-2 lg:col-span-4 border border-white/20 bg-white/10 p-8 text-center text-gray-300 rounded-3xl">
+              Team profiles will be introduced here.
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -1599,29 +1555,99 @@ const Footer = () => {
     <footer className="py-12 px-4 border-t border-white/10 bg-brand-green">
       <div className="max-w-7xl mx-auto text-center text-gray-400 text-sm">
         <p>
-          &copy; {new Date().getFullYear()} Safety Innovations Impact Group. All
-          rights reserved.
+          &copy; {new Date().getFullYear()} Safety Innovations Impact Group
+          Limited. All rights reserved.
         </p>
       </div>
     </footer>
   );
 };
 
+const BackToTop = () => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const toggleVisibility = () => {
+      if (window.scrollY > 500) {
+        setIsVisible(true);
+      } else {
+        setIsVisible(false);
+      }
+    };
+
+    window.addEventListener("scroll", toggleVisibility);
+    return () => window.removeEventListener("scroll", toggleVisibility);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0 }}
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 bg-brand-green hover:bg-brand-green/80 text-white p-4 rounded-full shadow-xl shadow-brand-green/30 transition-all duration-300 z-50 hover:scale-110"
+          aria-label="Back to top"
+        >
+          <ArrowUp className="w-6 h-6" />
+        </motion.button>
+      )}
+    </AnimatePresence>
+  );
+};
+
+const ScrollProgress = () => {
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    const updateScrollProgress = () => {
+      const scrollTop = window.scrollY;
+      const docHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
+      const progress = (scrollTop / docHeight) * 100;
+      setScrollProgress(progress);
+    };
+
+    window.addEventListener("scroll", updateScrollProgress);
+    return () => window.removeEventListener("scroll", updateScrollProgress);
+  }, []);
+
+  return (
+    <div className="fixed top-0 left-0 w-full h-1 bg-white/10 z-[60]">
+      <motion.div
+        className="h-full bg-gradient-to-r from-brand-red to-brand-green"
+        style={{ width: `${scrollProgress}%` }}
+        transition={{ duration: 0.1 }}
+      />
+    </div>
+  );
+};
+
 function App() {
   const content = useSiteContent();
   const teamMembers = useTeamMembers();
+
   return (
     <div className="public-site min-h-screen overflow-x-hidden bg-brand-green font-sans text-white antialiased selection:bg-brand-red selection:text-white">
-      <Navbar showTeam={teamMembers.length > 0} />
+      <ScrollProgress />
       <Hero content={content.hero} />
       <Services />
       <TrainingApproach />
+      <Impact />
       <About content={content.about} />
-      <Team members={teamMembers} />
       <CommunityInitiative />
-      <ProfileCallToAction content={content.call_to_action} />
+      <Team members={teamMembers} />
       <Contact content={content.contact} />
       <Footer />
+      <BackToTop />
     </div>
   );
 }
