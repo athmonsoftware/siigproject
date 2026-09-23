@@ -12,7 +12,7 @@ export const theme = {
     deepCharcoal: "#121824",
     pureWhite: "#FFFFFF",
 
-    // Accent colors
+    // Accent colors (legacy, can be updated)
     emergencyOrange: "#FF5722",
     safetyCyan: "#00E5FF",
   },
