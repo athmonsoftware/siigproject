@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   ArrowUp,
+  Clock3,
 } from "lucide-react";
 import { useSiteContent } from "./hooks/useSiteContent";
 import { useTeamMembers } from "./hooks/useTeamMembers";
@@ -876,18 +877,18 @@ const Impact = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
             <ImpactAttribute
               icon={Shield}
-              title="Practical Training"
-              description="Hands-on instruction designed for confident action in real emergencies."
+              title="Hands-On Skills"
+              description="Practical instruction that builds confidence through guided participation."
             />
             <ImpactAttribute
               icon={Target}
-              title="Scenario-Based Learning"
-              description="Repeated practice turns safety knowledge into usable response skills."
+              title="Realistic Scenarios"
+              description="Training activities shaped around real workplace and community situations."
             />
             <ImpactAttribute
-              icon={Users}
-              title="Workplace & Community Focus"
-              description="Training shaped around the people, setting, and risks of each organisation."
+              icon={Clock3}
+              title="24/7 Response Readiness"
+              description="Preparedness for emergencies that can happen at any hour."
             />
           </div>
         </motion.div>
@@ -1532,7 +1533,9 @@ const Contact = ({ content }) => {
 };
 
 const Team = ({ members }) => {
-  if (!members.length) return null;
+  const placeholders = Array.from({ length: 4 }, (_, index) => ({
+    id: `placeholder-${index}`,
+  }));
 
   return (
     <section id="team" className="bg-brand-green px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
@@ -1547,9 +1550,10 @@ const Team = ({ members }) => {
         </motion.h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {members.map((member, index) => (
+          {members.length > 0
+            ? members.map((member, index) => (
             <motion.div
-              key={index}
+              key={member.id || index}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -1571,7 +1575,24 @@ const Team = ({ members }) => {
                 {member.biography}
               </p>
             </motion.div>
-          ))}
+              ))
+            : placeholders.map((placeholder, index) => (
+                <motion.div
+                  key={placeholder.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.08, duration: 0.5 }}
+                  className="border border-white/20 bg-white/10 p-6 text-center shadow-xl backdrop-blur-xl rounded-3xl"
+                  aria-label="Team member profile placeholder"
+                >
+                  <div className="mx-auto mb-5 flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/10">
+                    <Users className="h-12 w-12 text-white/70" aria-hidden="true" />
+                  </div>
+                  <div className="mx-auto mb-3 h-5 w-32 rounded bg-white/20" />
+                  <div className="mx-auto h-4 w-24 rounded bg-brand-red/40" />
+                </motion.div>
+              ))}
         </div>
       </div>
     </section>
@@ -1666,7 +1687,7 @@ function App() {
   return (
     <div className="public-site min-h-screen overflow-x-hidden bg-brand-green font-sans text-white antialiased selection:bg-brand-red selection:text-white">
       <ScrollProgress />
-      <Hero content={content.hero} showTeam={teamMembers.length > 0} />
+      <Hero content={content.hero} showTeam />
       <Services />
       <TrainingApproach />
       <Impact />
