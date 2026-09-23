@@ -34,6 +34,45 @@ create table if not exists public.enquiries (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.team_members (
+  id uuid primary key default gen_random_uuid(),
+  full_name text not null check (char_length(full_name) between 2 and 120),
+  position text not null check (char_length(position) between 2 and 160),
+  biography text not null default '' check (char_length(biography) <= 2000),
+  image_url text check (char_length(image_url) <= 1000),
+  image_alt text check (char_length(image_alt) <= 240),
+  display_order integer not null default 0 check (display_order >= 0),
+  is_published boolean not null default true,
+  created_by uuid references auth.users(id) on delete set null,
+  updated_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Preserve team profiles created by the earlier schema while moving them to
+-- the field names used by the public site and admin panel.
+do $$ begin
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'team_members' and column_name = 'name')
+    and not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'team_members' and column_name = 'full_name')
+  then alter table public.team_members rename column name to full_name; end if;
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'team_members' and column_name = 'role')
+    and not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'team_members' and column_name = 'position')
+  then alter table public.team_members rename column role to position; end if;
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'team_members' and column_name = 'description')
+    and not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'team_members' and column_name = 'biography')
+  then alter table public.team_members rename column description to biography; end if;
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'team_members' and column_name = 'is_active')
+    and not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'team_members' and column_name = 'is_published')
+  then alter table public.team_members rename column is_active to is_published; end if;
+end $$;
+
+alter table public.team_members add column if not exists image_alt text;
+alter table public.team_members add column if not exists created_by uuid references auth.users(id) on delete set null;
+alter table public.team_members add column if not exists updated_by uuid references auth.users(id) on delete set null;
+update public.team_members set biography = '' where biography is null;
+alter table public.team_members alter column biography set default '';
+alter table public.team_members alter column biography set not null;
+
 create or replace function public.is_staff()
 returns boolean
 language sql
@@ -78,9 +117,14 @@ drop trigger if exists enquiries_updated_at on public.enquiries;
 create trigger enquiries_updated_at before update on public.enquiries
 for each row execute function public.touch_updated_at();
 
+drop trigger if exists team_members_updated_at on public.team_members;
+create trigger team_members_updated_at before update on public.team_members
+for each row execute function public.touch_updated_at();
+
 alter table public.profiles enable row level security;
 alter table public.site_content enable row level security;
 alter table public.enquiries enable row level security;
+alter table public.team_members enable row level security;
 
 drop policy if exists "Users read own profile" on public.profiles;
 create policy "Users read own profile" on public.profiles for select
@@ -108,6 +152,14 @@ to authenticated using (public.is_staff());
 
 drop policy if exists "Staff updates enquiries" on public.enquiries;
 create policy "Staff updates enquiries" on public.enquiries for update
+to authenticated using (public.is_staff()) with check (public.is_staff());
+
+drop policy if exists "Public reads published team members" on public.team_members;
+create policy "Public reads published team members" on public.team_members for select
+to anon, authenticated using (is_published or public.is_staff());
+
+drop policy if exists "Staff manages team members" on public.team_members;
+create policy "Staff manages team members" on public.team_members for all
 to authenticated using (public.is_staff()) with check (public.is_staff());
 
 insert into public.site_content (section, content, is_published) values

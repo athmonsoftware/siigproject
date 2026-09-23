@@ -15,9 +15,10 @@ import {
   X,
 } from "lucide-react";
 import { useSiteContent } from "./hooks/useSiteContent";
+import { useTeamMembers } from "./hooks/useTeamMembers";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 
-const Navbar = () => {
+const Navbar = ({ showTeam }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -27,6 +28,7 @@ const Navbar = () => {
     { name: "Services", href: "#services" },
     { name: "Training", href: "#training" },
     { name: "About", href: "#about" },
+    ...(showTeam ? [{ name: "Team", href: "#team" }] : []),
     { name: "Community", href: "#community" },
     { name: "Contact", href: "#contact", id: "contact" },
   ];
@@ -1271,6 +1273,66 @@ const CommunityInitiative = () => {
   );
 };
 
+const Team = ({ members }) => {
+  if (!members.length) return null;
+
+  return (
+    <section
+      id="team"
+      className="relative overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
+    >
+      <div className="pointer-events-none absolute left-1/3 top-0 h-72 w-72 rounded-full bg-brand-red/10 blur-3xl" />
+      <div className="relative z-10 mx-auto max-w-7xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          className="mx-auto mb-10 max-w-3xl text-center sm:mb-14 lg:mb-16"
+        >
+          <p className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-brand-red">The people behind the mission</p>
+          <h2 className="text-4xl font-bold leading-tight text-white md:text-5xl">Meet Our Team</h2>
+          <p className="mt-5 text-gray-300">Experienced professionals committed to practical training, emergency readiness, and safer communities.</p>
+        </motion.div>
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:gap-8">
+          {members.map((member, index) => (
+            <motion.article
+              key={member.id}
+              initial={{ opacity: 0, y: 28 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.5, delay: Math.min(index * 0.08, 0.24) }}
+              whileHover={{ y: -6 }}
+              className="group min-w-0 overflow-hidden rounded-3xl border border-white/20 bg-white/10 shadow-xl backdrop-blur-xl"
+            >
+              <div className="relative aspect-[4/5] overflow-hidden bg-white/5">
+                {member.image_url ? (
+                  <img
+                    src={member.image_url}
+                    alt={member.image_alt || `${member.full_name}, ${member.position}`}
+                    className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="grid h-full place-items-center bg-gradient-to-br from-white/10 to-white/5 text-5xl font-black text-white/70">
+                    {member.full_name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}
+                  </div>
+                )}
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-brand-green/90 via-transparent to-transparent" />
+              </div>
+              <div className="p-5 sm:p-6">
+                <h3 className="text-2xl font-bold text-white">{member.full_name}</h3>
+                <p className="mt-1 font-semibold text-brand-red">{member.position}</p>
+                {member.biography && <p className="mt-4 text-gray-300">{member.biography}</p>}
+              </div>
+            </motion.article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const ProfileCallToAction = ({ content }) => (
   <section className="bg-brand-green px-4 py-16 sm:px-6 sm:py-20">
     <motion.div
@@ -1547,13 +1609,15 @@ const Footer = () => {
 
 function App() {
   const content = useSiteContent();
+  const teamMembers = useTeamMembers();
   return (
     <div className="public-site min-h-screen overflow-x-hidden bg-brand-green font-sans text-white antialiased selection:bg-brand-red selection:text-white">
-      <Navbar />
+      <Navbar showTeam={teamMembers.length > 0} />
       <Hero content={content.hero} />
       <Services />
       <TrainingApproach />
       <About content={content.about} />
+      <Team members={teamMembers} />
       <CommunityInitiative />
       <ProfileCallToAction content={content.call_to_action} />
       <Contact content={content.contact} />
