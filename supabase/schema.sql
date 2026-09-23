@@ -34,6 +34,28 @@ create table if not exists public.enquiries (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.team_members (
+  id uuid primary key default gen_random_uuid(),
+  name text not null check (char_length(name) between 2 and 120),
+  role text not null check (char_length(role) between 2 and 120),
+  description text check (char_length(description) <= 500),
+  image_url text,
+  display_order integer not null default 0,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.certifications (
+  id uuid primary key default gen_random_uuid(),
+  name text not null check (char_length(name) between 2 and 200),
+  description text check (char_length(description) <= 500),
+  display_order integer not null default 0,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create or replace function public.is_staff()
 returns boolean
 language sql
@@ -78,9 +100,19 @@ drop trigger if exists enquiries_updated_at on public.enquiries;
 create trigger enquiries_updated_at before update on public.enquiries
 for each row execute function public.touch_updated_at();
 
+drop trigger if exists team_members_updated_at on public.team_members;
+create trigger team_members_updated_at before update on public.team_members
+for each row execute function public.touch_updated_at();
+
+drop trigger if exists certifications_updated_at on public.certifications;
+create trigger certifications_updated_at before update on public.certifications
+for each row execute function public.touch_updated_at();
+
 alter table public.profiles enable row level security;
 alter table public.site_content enable row level security;
 alter table public.enquiries enable row level security;
+alter table public.team_members enable row level security;
+alter table public.certifications enable row level security;
 
 drop policy if exists "Users read own profile" on public.profiles;
 create policy "Users read own profile" on public.profiles for select
@@ -110,12 +142,42 @@ drop policy if exists "Staff updates enquiries" on public.enquiries;
 create policy "Staff updates enquiries" on public.enquiries for update
 to authenticated using (public.is_staff()) with check (public.is_staff());
 
+drop policy if exists "Public reads active team members" on public.team_members;
+create policy "Public reads active team members" on public.team_members for select
+to anon, authenticated using (is_active);
+
+drop policy if exists "Staff manages team members" on public.team_members;
+create policy "Staff manages team members" on public.team_members for all
+to authenticated using (public.is_staff()) with check (public.is_staff());
+
+drop policy if exists "Public reads active certifications" on public.certifications;
+create policy "Public reads active certifications" on public.certifications for select
+to anon, authenticated using (is_active);
+
+drop policy if exists "Staff manages certifications" on public.certifications;
+create policy "Staff manages certifications" on public.certifications for all
+to authenticated using (public.is_staff()) with check (public.is_staff());
+
 insert into public.site_content (section, content, is_published) values
 ('hero', '{"eyebrow":"YOUR SAFETY, OUR MISSION","title":"Next-Gen Safety.\\nUncompromising Protection.","description":"A Trusted Partner in Health Security-Prepared people.","primary_button":"Explore Solutions","secondary_button":"Book a Consultation"}', true),
 ('about', '{"heading":"About Us","story_title":"Our Story","story_paragraph_1":"Safety Innovations Impact Group is a professional safety training and compliance company established in February 2025, dedicated to equipping organisations and communities with life-saving skills and practical emergency preparedness.","story_paragraph_2":"Founded in February 2025, the company was created in response to a growing need: many workplaces meet safety requirements on paper but remain unprepared in real emergencies. Our goal is to bridge the gap between compliance and real-world readiness.","story_paragraph_3":"We provide hands-on first aid and fire safety training designed not just to certify participants, but to give them the confidence to act when seconds matter. Our instructors bring practical experience, structured teaching methods, and scenario-based learning to ensure that knowledge becomes instinct. Every program is tailored to the environment in which it will be used, because emergencies never happen in a classroom — they happen in real workplaces.","statement":"At Safety Innovations Impact Group, safety is not a checklist, it''s our culture."}', true),
 ('call_to_action', '{"eyebrow":"Emergencies are unpredictable. Preparation should not be.","title":"Train your team. Protect your workplace. Build a culture of safety.","button":"Contact SIIG"}', true),
 ('contact', '{"heading":"Contact Us","intro":"Ready to enhance your workplace safety? Contact us today for a consultation or to learn more about our services.","phone":"+233 26 137 0547","phone_link":"+233261370547","email":"safetyinnovations.ltd@gmail.com","instagram":"@safety_innovationsimpactgh","instagram_url":"https://www.instagram.com/safety_innovationsimpactgh/"}', true)
 on conflict (section) do nothing;
+
+insert into public.team_members (name, role, description, display_order, is_active) values
+('Kwame Mensah', 'Chief Executive Officer', '20+ years in occupational safety and industrial management', 1, true),
+('Ama Ofori', 'Head of Training', 'Certified safety trainer with expertise in emergency response', 2, true),
+('Kofi Asante', 'Compliance Director', 'Specialist in Ghanaian labor laws and international safety standards', 3, true),
+('Efia Boateng', 'Operations Manager', 'Expert in implementing safety protocols across various industries', 4, true)
+on conflict do nothing;
+
+insert into public.certifications (name, description, display_order, is_active) values
+('Ghana Standards Authority', 'Certified safety training provider', 1, true),
+('Occupational Safety & Health', 'OSHA compliant protocols', 2, true),
+('First Aid Certification', 'Red Cross certified training', 3, true),
+('Fire Safety Compliance', 'GNFS approved procedures', 4, true)
+on conflict do nothing;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (

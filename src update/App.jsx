@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart,
@@ -18,9 +17,6 @@ import {
   X,
   ArrowUp,
 } from "lucide-react";
-import { useSiteContent } from "./hooks/useSiteContent";
-import { isSupabaseConfigured, supabase } from "./lib/supabase";
-import AdminRouter from "./admin/AdminRouter";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -1412,46 +1408,12 @@ const Contact = () => {
     company: "",
     message: "",
   });
-  const [submitState, setSubmitState] = useState({
-    loading: false,
-    message: "",
-    error: false,
-  });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (isSupabaseConfigured) {
-      setSubmitState({ loading: true, message: "", error: false });
-      const { error } = await supabase.from("enquiries").insert(formData);
-      if (!error) {
-        setSubmitState({
-          loading: false,
-          message: "Thank you for your message! We will get back to you soon.",
-          error: false,
-        });
-        setFormData({
-          name: "",
-          email: "",
-          phone: "",
-          company: "",
-          message: "",
-        });
-      } else {
-        setSubmitState({
-          loading: false,
-          message: "Error submitting form. Please try again.",
-          error: true,
-        });
-      }
-    } else {
-      // Fallback to mailto if Supabase not configured
-      const mailtoLink = `mailto:safetyinnovations.ltd@gmail.com?subject=Enquiry from ${encodeURIComponent(
-        formData.name
-      )}&body=${encodeURIComponent(
-        `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nCompany: ${formData.company}\n\nMessage:\n${formData.message}`
-      )}`;
-      window.location.href = mailtoLink;
-    }
+    console.log("Form submitted:", formData);
+    alert("Thank you for your message! We will get back to you soon.");
+    setFormData({ name: "", email: "", phone: "", company: "", message: "" });
   };
 
   const handleChange = (e) => {
@@ -1617,21 +1579,11 @@ const Contact = () => {
 
               <button
                 type="submit"
-                disabled={submitState.loading}
-                className="w-full bg-brand-green hover:bg-brand-green/80 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg shadow-brand-green/20 flex items-center justify-center gap-2 disabled:opacity-60"
+                className="w-full bg-brand-green hover:bg-brand-green/80 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg shadow-brand-green/20 flex items-center justify-center gap-2"
               >
-                {submitState.loading ? "Sending..." : "Send Message"}
+                Send Message
                 <Send className="w-5 h-5" />
               </button>
-              {submitState.message && (
-                <p
-                  className={`text-center text-sm ${
-                    submitState.error ? "text-red-400" : "text-green-400"
-                  }`}
-                >
-                  {submitState.message}
-                </p>
-              )}
             </form>
           </motion.div>
         </div>
@@ -1789,32 +1741,21 @@ const ScrollProgress = () => {
 };
 
 function App() {
-  const content = useSiteContent();
   return (
-    <Router>
-      <Routes>
-        <Route path="/admin/*" element={<AdminRouter />} />
-        <Route
-          path="*"
-          element={
-            <div className="min-h-screen bg-brand-green text-white font-sans antialiased selection:bg-brand-red selection:text-white">
-              <ScrollProgress />
-              <Hero />
-              <Services />
-              <TrainingApproach />
-              <Impact />
-              <About />
-              <Compliance />
-              <CommunityInitiative />
-              <Team />
-              <Contact />
-              <Footer />
-              <BackToTop />
-            </div>
-          }
-        />
-      </Routes>
-    </Router>
+    <div className="min-h-screen bg-brand-green text-white font-sans antialiased selection:bg-brand-red selection:text-white">
+      <ScrollProgress />
+      <Hero />
+      <Services />
+      <TrainingApproach />
+      <Impact />
+      <About />
+      <Compliance />
+      <CommunityInitiative />
+      <Team />
+      <Contact />
+      <Footer />
+      <BackToTop />
+    </div>
   );
 }
 
