@@ -17,6 +17,56 @@
   }
 }
 
+.public-site {
+  font-size: clamp(1rem, 0.98rem + 0.1vw, 1.0625rem);
+  line-height: 1.65;
+  text-rendering: optimizeLegibility;
+}
+
+.public-site section {
+  overflow-wrap: anywhere;
+}
+
+.public-site section :is(h1, h2, h3, h4) {
+  line-height: 1.16;
+  text-wrap: balance;
+}
+
+.public-site section :is(p, li) {
+  line-height: 1.72;
+  text-wrap: pretty;
+}
+
+.public-site :is(a, button, input, textarea):focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.95);
+  outline-offset: 3px;
+}
+
+@media (max-width: 639px) {
+  .public-site section :is(h2, h3, h4) {
+    overflow-wrap: break-word;
+  }
+
+  .public-site section :is(p, li) {
+    line-height: 1.68;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @layer utilities {
   .glass {
     background: rgba(13, 59, 42, 0.845);

@@ -183,7 +183,7 @@ const Hero = ({ content }) => {
         transition={{ duration: 0.8 }}
         className="relative z-10 max-w-4xl mx-auto px-4 text-center mt-12"
       >
-        <div className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-16 rounded-3xl shadow-2xl">
+        <div className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-16 rounded-3xl shadow-2xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div>
               <span className="inline-block bg-white/15 text-brand-red text-xs px-3 py-1 rounded-full uppercase tracking-widest font-semibold mb-6 border border-white/10">
@@ -259,7 +259,7 @@ const ServiceCard = ({ icon: Icon, title, description, features, delay }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay, duration: 0.6 }}
-      className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl group hover:border-brand-green/50 transition-all duration-300"
+      className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 rounded-3xl shadow-xl group hover:border-brand-green/50 transition-all duration-300"
     >
       <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-brand-green to-brand-red mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-brand-green/20">
         <Icon className="w-8 h-8 text-white" />
@@ -284,13 +284,13 @@ const ServiceCard = ({ icon: Icon, title, description, features, delay }) => {
 
 const Services = () => {
   return (
-    <section id="services" className="py-24 px-4 relative bg-brand-green">
+    <section id="services" className="relative overflow-hidden bg-brand-green px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
       <div className="max-w-7xl mx-auto">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
+          className="mb-10 text-center text-4xl font-bold leading-tight text-white sm:mb-14 md:text-5xl lg:mb-16"
         >
           Our Services
         </motion.h2>
@@ -301,7 +301,7 @@ const Services = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12 hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl mb-12 hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
         >
           <div className="flex items-center gap-4 mb-6">
             <div className="p-3 bg-brand-green/30 rounded-xl">
@@ -386,7 +386,7 @@ const Services = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12 hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
+          className="backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl mb-12 hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
         >
           <div className="flex items-center gap-4 mb-6">
             <div className="p-3 bg-brand-green/30 rounded-xl">
@@ -466,7 +466,7 @@ const Services = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12 hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl mb-12 hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
         >
           <div className="flex items-center gap-4 mb-6">
             <div className="p-3 bg-brand-green/30 rounded-xl">
@@ -550,7 +550,7 @@ const Services = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
         >
           <div className="flex items-center gap-4 mb-6">
             <div className="p-3 bg-brand-green/30 rounded-xl">
@@ -730,7 +730,7 @@ const TrainingApproach = () => {
   return (
     <section
       id="training"
-      className="py-24 px-4 bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 relative overflow-hidden"
+      className="relative overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
     >
       {/* Decorative background elements */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-red/10 rounded-full blur-3xl animate-pulse"></div>
@@ -744,7 +744,7 @@ const TrainingApproach = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
+          className="mb-10 text-center text-4xl font-bold leading-tight text-white sm:mb-14 md:text-5xl lg:mb-16"
         >
           Our Training Approach
         </motion.h2>
@@ -754,7 +754,7 @@ const TrainingApproach = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl mb-12"
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <motion.div
@@ -824,7 +824,7 @@ const TrainingApproach = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl"
         >
           <h3 className="text-2xl font-bold text-white mb-6">Who We Serve</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -871,7 +871,7 @@ const About = ({ content }) => {
   return (
     <section
       id="about"
-      className="py-24 px-4 bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 relative overflow-hidden"
+      className="relative overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
     >
       {/* Decorative background elements */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-brand-red/10 rounded-full blur-3xl"></div>
@@ -882,7 +882,7 @@ const About = ({ content }) => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
+          className="mb-10 text-center text-4xl font-bold leading-tight text-white sm:mb-14 md:text-5xl lg:mb-16"
         >
           {content.heading}
         </motion.h2>
@@ -892,7 +892,7 @@ const About = ({ content }) => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl mb-12"
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div>
@@ -933,7 +933,7 @@ const About = ({ content }) => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
+            className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 rounded-3xl shadow-xl"
           >
             <div className="flex items-center gap-4 mb-6">
               <div className="p-3 bg-brand-green/30 rounded-xl">
@@ -953,7 +953,7 @@ const About = ({ content }) => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
+            className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 rounded-3xl shadow-xl"
           >
             <div className="flex items-center gap-4 mb-6">
               <div className="p-3 bg-brand-green/30 rounded-xl">
@@ -974,7 +974,7 @@ const About = ({ content }) => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl"
         >
           <h3 className="text-2xl font-bold text-white mb-6">
             Our Values (PIIPE)
@@ -1056,7 +1056,7 @@ const CommunityInitiative = () => {
   return (
     <section
       id="community"
-      className="py-24 px-4 bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 relative overflow-hidden"
+      className="relative overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
     >
       {/* Decorative background elements */}
       <div className="absolute top-0 left-1/2 w-96 h-96 bg-brand-red/10 rounded-full blur-3xl animate-pulse"></div>
@@ -1070,7 +1070,7 @@ const CommunityInitiative = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
+          className="mb-10 text-center text-4xl font-bold leading-tight text-white sm:mb-14 md:text-5xl lg:mb-16"
         >
           Community Medical Support Initiative
         </motion.h2>
@@ -1080,7 +1080,7 @@ const CommunityInitiative = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl mb-12"
         >
           <h3 className="text-2xl font-bold text-white mb-6">
             Supporting Health Through Essential Equipment Donations
@@ -1110,7 +1110,7 @@ const CommunityInitiative = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
+            className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 rounded-3xl shadow-xl"
           >
             <h3 className="text-2xl font-bold text-white mb-6">
               What We Provide
@@ -1178,7 +1178,7 @@ const CommunityInitiative = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
+            className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 rounded-3xl shadow-xl"
           >
             <h3 className="text-2xl font-bold text-white mb-6">
               Where We Focus
@@ -1243,7 +1243,7 @@ const CommunityInitiative = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl"
+          className="backdrop-blur-xl bg-white/10 border border-white/20 p-5 sm:p-8 md:p-12 rounded-3xl shadow-xl"
         >
           <h3 className="text-2xl font-bold text-white mb-6">Our Commitment</h3>
           <p className="text-gray-300 leading-relaxed mb-6">
@@ -1272,22 +1272,24 @@ const CommunityInitiative = () => {
 };
 
 const ProfileCallToAction = ({ content }) => (
-  <section className="py-20 px-4 bg-brand-green">
+  <section className="bg-brand-green px-4 py-16 sm:px-6 sm:py-20">
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="max-w-5xl mx-auto backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl text-center"
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.45 }}
+      className="mx-auto max-w-5xl overflow-hidden rounded-3xl border border-white/20 bg-white/10 p-6 text-center shadow-xl backdrop-blur-xl sm:p-8 md:p-12"
     >
       <p className="text-brand-red font-semibold uppercase tracking-widest mb-4">
         {content.eyebrow}
       </p>
-      <h2 className="text-3xl md:text-5xl font-bold text-white mb-8">
+      <h2 className="mb-8 text-3xl font-bold leading-tight text-white md:text-5xl">
         {content.title}
       </h2>
       <a
         href="#contact"
-        className="inline-flex items-center justify-center gap-2 bg-white text-black hover:bg-gray-200 px-8 py-4 rounded-xl font-bold transition"
+        className="inline-flex min-h-12 items-center justify-center gap-2 bg-white px-8 py-4 font-bold text-black shadow-lg transition duration-300 hover:-translate-y-1 hover:bg-gray-200 hover:shadow-xl active:translate-y-0"
       >
         {content.button} <ArrowRight className="w-5 h-5" />
       </a>
@@ -1336,89 +1338,90 @@ const Contact = ({ content }) => {
   };
 
   return (
-    <section id="contact" className="py-24 px-4 bg-brand-green">
-      <div className="max-w-7xl mx-auto">
+    <section id="contact" className="overflow-hidden bg-brand-green px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
+      <div className="mx-auto max-w-7xl">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
+          className="mb-10 text-center text-4xl font-bold text-white sm:mb-14 md:text-5xl lg:mb-16"
         >
           {content.heading}
         </motion.h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-12">
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.12 }}
             transition={{ duration: 0.6 }}
-            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
+            whileHover={{ y: -4 }}
+            className="min-w-0 overflow-hidden rounded-3xl border border-white/20 bg-white/10 p-5 shadow-xl backdrop-blur-xl sm:p-8"
           >
             <h3 className="text-2xl font-bold text-white mb-6">Get in Touch</h3>
             <p className="text-gray-300 leading-relaxed mb-8">
               {content.intro}
             </p>
 
-            <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-brand-green/30 rounded-xl">
+            <div className="min-w-0 space-y-6">
+              <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
+                <div className="shrink-0 rounded-xl bg-brand-green/30 p-3">
                   <Phone className="w-6 h-6 text-brand-red" />
                 </div>
-                <div>
+                <div className="min-w-0 pt-0.5 sm:pt-0">
                   <p className="text-gray-400 text-sm">Phone</p>
                   <a
                     href={`tel:${content.phone_link}`}
-                    className="text-white font-semibold hover:text-brand-red transition"
+                    className="block max-w-full break-words font-semibold text-white transition hover:text-brand-red"
                   >
                     {content.phone}
                   </a>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-brand-green/30 rounded-xl">
+              <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
+                <div className="shrink-0 rounded-xl bg-brand-green/30 p-3">
                   <Mail className="w-6 h-6 text-brand-red" />
                 </div>
-                <div>
+                <div className="min-w-0 pt-0.5 sm:pt-0">
                   <p className="text-gray-400 text-sm">Email</p>
                   <a
                     href={`mailto:${content.email}`}
-                    className="text-white font-semibold hover:text-brand-red transition"
+                    className="block max-w-full break-all font-semibold text-white transition sm:break-words hover:text-brand-red"
                   >
                     {content.email}
                   </a>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-brand-green/30 rounded-xl">
+              <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
+                <div className="shrink-0 rounded-xl bg-brand-green/30 p-3">
                   <Phone className="w-6 h-6 text-brand-red" />
                 </div>
-                <div>
+                <div className="min-w-0 pt-0.5 sm:pt-0">
                   <p className="text-gray-400 text-sm">WhatsApp</p>
                   <a
                     href={`https://wa.me/${content.phone_link.replace(/\D/g, "")}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-white font-semibold hover:text-brand-red transition"
+                    className="block max-w-full break-words font-semibold text-white transition hover:text-brand-red"
                   >
                     {content.phone}
                   </a>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-brand-green/30 rounded-xl">
+              <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
+                <div className="shrink-0 rounded-xl bg-brand-green/30 p-3">
                   <Users className="w-6 h-6 text-brand-red" />
                 </div>
-                <div>
+                <div className="min-w-0 pt-0.5 sm:pt-0">
                   <p className="text-gray-400 text-sm">Instagram</p>
                   <a
                     href={content.instagram_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-white font-semibold hover:text-brand-red transition"
+                    className="block max-w-full break-all font-semibold text-white transition sm:break-words hover:text-brand-red"
                   >
                     {content.instagram}
                   </a>
@@ -1428,16 +1431,17 @@ const Contact = ({ content }) => {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.08 }}
             transition={{ duration: 0.6 }}
-            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
+            whileHover={{ y: -4 }}
+            className="min-w-0 overflow-hidden rounded-3xl border border-white/20 bg-white/10 p-5 shadow-xl backdrop-blur-xl sm:p-8"
           >
             <h3 className="text-2xl font-bold text-white mb-6">
               Send us a Message
             </h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="min-w-0 space-y-5">
               <div>
                 <label className="block text-gray-300 text-sm mb-2">
                   Full Name
@@ -1515,7 +1519,7 @@ const Contact = ({ content }) => {
               <button
                 type="submit"
                 disabled={submitState.loading}
-                className="w-full bg-brand-green hover:bg-brand-green/80 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg shadow-brand-green/20 flex items-center justify-center gap-2"
+                className="flex min-h-12 w-full items-center justify-center gap-2 bg-brand-green px-6 py-3 font-semibold text-white shadow-lg shadow-brand-green/20 transition duration-300 hover:-translate-y-0.5 hover:bg-brand-green/80 hover:shadow-xl active:translate-y-0 disabled:translate-y-0 disabled:opacity-60"
               >
                 {submitState.loading ? "Sending…" : isSupabaseConfigured ? "Send Message" : "Prepare Email"}
                 <Send className="w-5 h-5" />
@@ -1544,7 +1548,7 @@ const Footer = () => {
 function App() {
   const content = useSiteContent();
   return (
-    <div className="min-h-screen overflow-x-hidden bg-brand-green text-white font-sans antialiased selection:bg-brand-red selection:text-white">
+    <div className="public-site min-h-screen overflow-x-hidden bg-brand-green font-sans text-white antialiased selection:bg-brand-red selection:text-white">
       <Navbar />
       <Hero content={content.hero} />
       <Services />
