@@ -264,6 +264,13 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState("overview");
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut({ scope: "local" });
+    setAuthorized(null);
+    setSession(null);
+    setMenuOpen(false);
+  };
   const [enquiries, setEnquiries] = useState([]);
   const [contentRows, setContentRows] = useState({});
 
@@ -306,7 +313,7 @@ export default function AdminPanel() {
   if (window.location.pathname === "/admin/reset-password" && session) return <PasswordReset />;
   if (!session) return <Login onAuthenticated={setSession} />;
   if (authorized === null) return <main className="grid min-h-screen place-items-center bg-slate-950 text-white"><RefreshCw className="h-7 w-7 animate-spin" aria-label="Checking access" /></main>;
-  if (!authorized) return <main className="grid min-h-screen place-items-center bg-slate-950 px-5 text-white"><section className="max-w-lg border border-white/15 bg-white/5 p-8 text-center"><ShieldCheck className="mx-auto h-10 w-10 text-amber-400" /><h1 className="mt-5 text-3xl font-black">Access awaiting approval</h1><p className="mt-3 leading-7 text-slate-300">This account is authenticated but has not been assigned an SIIG administrator or editor role.</p><button onClick={() => supabase.auth.signOut()} className="mt-7 min-h-11 bg-white px-5 font-bold text-slate-950">Sign out</button></section></main>;
+  if (!authorized) return <main className="grid min-h-screen place-items-center bg-slate-950 px-5 text-white"><section className="max-w-lg border border-white/15 bg-white/5 p-8 text-center"><ShieldCheck className="mx-auto h-10 w-10 text-amber-400" /><h1 className="mt-5 text-3xl font-black">Access awaiting approval</h1><p className="mt-3 leading-7 text-slate-300">This account is authenticated but has not been assigned an SIIG administrator or editor role.</p><button onClick={handleSignOut} className="mt-7 min-h-11 bg-white px-5 font-bold text-slate-950">Sign out</button></section></main>;
 
   return <div className="min-h-screen bg-slate-100 text-slate-900">
     <button onClick={() => setMenuOpen(true)} className="fixed left-4 top-4 z-30 grid h-11 w-11 place-items-center bg-slate-950 text-white lg:hidden" aria-label="Open navigation"><Menu /></button>
@@ -314,7 +321,7 @@ export default function AdminPanel() {
     <aside className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col bg-slate-950 p-5 text-white transition-transform duration-300 lg:translate-x-0 ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}>
       <div className="flex items-center justify-between"><a href="/" className="flex items-center gap-3"><img src="/logo.png" alt="SIIG" className="h-12" /><div><p className="font-black">SIIG</p><p className="text-xs text-slate-400">Administration</p></div></a><button onClick={() => setMenuOpen(false)} className="grid h-11 w-11 place-items-center lg:hidden" aria-label="Close navigation"><X /></button></div>
       <nav className="mt-10 space-y-2">{navigation.map(({ id, label, icon: Icon }) => <button key={id} onClick={() => { setActive(id); setMenuOpen(false); }} className={`flex min-h-12 w-full items-center gap-3 px-4 text-left font-bold transition ${active === id ? "bg-emerald-700 text-white" : "text-slate-300 hover:bg-white/10 hover:text-white"}`}><Icon className="h-5 w-5" />{label}</button>)}</nav>
-      <div className="mt-auto border-t border-white/10 pt-5"><p className="truncate px-2 text-xs text-slate-400">{session.user.email}</p><button onClick={() => supabase.auth.signOut()} className="mt-3 flex min-h-11 w-full items-center gap-3 px-2 font-bold text-slate-300 hover:text-white"><LogOut className="h-5 w-5" />Sign out</button></div>
+      <div className="mt-auto border-t border-white/10 pt-5"><p className="truncate px-2 text-xs text-slate-400">{session.user.email}</p><button onClick={handleSignOut} className="mt-3 flex min-h-11 w-full items-center gap-3 px-2 font-bold text-slate-300 hover:text-white"><LogOut className="h-5 w-5" />Sign out</button></div>
     </aside>
     <main className="min-h-screen px-5 pb-12 pt-20 lg:ml-72 lg:px-10 lg:pt-10">{currentView}</main>
   </div>;
