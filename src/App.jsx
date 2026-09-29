@@ -29,6 +29,8 @@ import { useSiteContent } from "./hooks/useSiteContent";
 import { useTeamMembers } from "./hooks/useTeamMembers";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import AdminRouter from "./admin/AdminRouter";
+import { Articles } from "./components/Articles";
+import { useArticles } from "./hooks/useArticles";
 
 const INTEREST_OPTIONS = [
   "General enquiry",
@@ -144,8 +146,11 @@ function Navbar({ hasTeam }) {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+  const { articles } = useArticles();
+  const hasArticles = articles && articles.length > 0;
 
   const navLinks = [
+    ...(hasArticles ? [{ name: "Articles", href: "#articles" }] : []),
     { name: "Services", href: "#services" },
     { name: "Event Safety", href: "#events" },
     { name: "Our Approach", href: "#training" },
@@ -1026,7 +1031,7 @@ function Contact({ content }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const payloadMessage = `[${formData.service}]\n\n${formData.message}`;
+
     if (isSupabaseConfigured) {
       setSubmitState({ loading: true, message: "", error: false });
       const { error } = await supabase.from("enquiries").insert({
@@ -1034,7 +1039,8 @@ function Contact({ content }) {
         email: formData.email,
         phone: formData.phone,
         company: formData.company,
-        message: payloadMessage,
+        interested_in: formData.service,
+        message: formData.message,
       });
       if (!error) {
         setSubmitState({
@@ -1059,9 +1065,9 @@ function Contact({ content }) {
       }
     } else {
       const mailtoLink = `mailto:${content.email}?subject=${encodeURIComponent(
-        `${formData.service} from ${formData.name}`
+        `${formData.service} from${formData.name}`
       )}&body=${encodeURIComponent(
-        `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nOrganisation: ${formData.company}\nInterest: ${formData.service}\n\nMessage:\n${formData.message}`
+        `Name: ${formData.name}\nEmail:${formData.email}\nPhone: ${formData.phone}\nOrganisation:${formData.company}\nInterest: ${formData.service}\n\nMessage:\n${formData.message}`
       )}`;
       window.location.href = mailtoLink;
     }
@@ -1380,6 +1386,7 @@ function PublicSite() {
       </div>
 
       <Hero content={hero} />
+      <Articles />
       <ServicesOverview />
       <SplitService
         id="first-aid"

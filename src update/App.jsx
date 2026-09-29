@@ -1391,14 +1391,37 @@ const Contact = () => {
     email: "",
     phone: "",
     company: "",
+    interestedIn: "",
     message: "",
   });
 
-  const handleSubmit = (e) => {
+  const [submitState, setSubmitState] = useState({
+    loading: false,
+    message: "",
+    error: false,
+  });
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitState({ loading: true, message: "", error: false });
+
     console.log("Form submitted:", formData);
-    alert("Thank you for your message! We will get back to you soon.");
-    setFormData({ name: "", email: "", phone: "", company: "", message: "" });
+
+    setTimeout(() => {
+      setSubmitState({
+        loading: false,
+        message: "Thank you for your message! We will get back to you soon.",
+        error: false,
+      });
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        company: "",
+        interestedIn: "",
+        message: "",
+      });
+    }, 600);
   };
 
   const handleChange = (e) => {
@@ -1418,6 +1441,7 @@ const Contact = () => {
         </motion.h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Info Card */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -1549,6 +1573,25 @@ const Contact = () => {
 
               <div>
                 <label className="block text-gray-300 text-sm mb-2">
+                  Interested In
+                </label>
+                <select
+                  name="interestedIn"
+                  value={formData.interestedIn}
+                  onChange={handleChange}
+                  className="w-full bg-slate-900 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-green transition"
+                >
+                  <option value="Workplace Safety Consultation">
+                    Workplace Safety Consultation
+                  </option>
+                  <option value="Safety Training">Safety Training</option>
+                  <option value="Safety Audit">Safety Audit</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-sm mb-2">
                   Message
                 </label>
                 <textarea
@@ -1564,11 +1607,22 @@ const Contact = () => {
 
               <button
                 type="submit"
-                className="w-full bg-brand-green hover:bg-brand-green/80 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg shadow-brand-green/20 flex items-center justify-center gap-2"
+                disabled={submitState.loading}
+                className="w-full bg-brand-green hover:bg-brand-green/80 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg shadow-brand-green/20 flex items-center justify-center gap-2 disabled:opacity-60"
               >
-                Send Message
+                {submitState.loading ? "Sending..." : "Send Message"}
                 <Send className="w-5 h-5" />
               </button>
+
+              {submitState.message && (
+                <p
+                  className={`text-sm mt-2 text-center font-medium ${
+                    submitState.error ? "text-red-400" : "text-green-300"
+                  }`}
+                >
+                  {submitState.message}
+                </p>
+              )}
             </form>
           </motion.div>
         </div>

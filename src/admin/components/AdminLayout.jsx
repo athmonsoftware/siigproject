@@ -7,6 +7,7 @@ const navigation = [
   { id: "dashboard", label: "Dashboard", path: "/admin" },
   { id: "content", label: "Content", path: "/admin/content" },
   { id: "enquiries", label: "Enquiries", path: "/admin/enquiries" },
+  { id: "articles", label: "Articles", path: "/admin/articles" },
   { id: "media", label: "Media", path: "/admin/media" },
   { id: "team", label: "Team", path: "/admin/team" },
   {

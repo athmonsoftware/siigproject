@@ -26,6 +26,7 @@ const navigation = [
   { id: "content", label: "Website content", icon: FileText },
   { id: "team", label: "Team members", icon: UserRound },
   { id: "enquiries", label: "Enquiries", icon: Inbox },
+  { id: "articles", label: "News & Articles", icon: FileText },
   { id: "media", label: "Media library", icon: Image },
   { id: "settings", label: "Settings", icon: Settings },
 ];
@@ -571,6 +572,438 @@ function Enquiries({ items, onUpdated }) {
   );
 }
 
+function ArticleEditor({ item, userId, onSaved, onCancel }) {
+  const [title, setTitle] = useState(item?.title || "");
+  const [slug, setSlug] = useState(item?.slug || "");
+  const [excerpt, setExcerpt] = useState(item?.excerpt || "");
+  const [content, setContent] = useState(item?.content || "");
+  const [coverImage, setCoverImage] = useState(item?.cover_image || "");
+  const [coverImageAlt, setCoverImageAlt] = useState(
+    item?.cover_image_alt || ""
+  );
+  const [isPublished, setIsPublished] = useState(item?.is_published ?? true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const getStoragePathFromUrl = (url) => {
+    if (!url || typeof url !== "string") return null;
+    try {
+      const marker = "/storage/v1/object/public/site-media/";
+      const index = url.indexOf(marker);
+      if (index !== -1) {
+        return decodeURIComponent(url.substring(index + marker.length));
+      }
+    } catch {
+      // Ignore parsing errors
+    }
+    return null;
+  };
+
+  const handleTitleChange = (e) => {
+    const val = e.target.value;
+    setTitle(val);
+    if (!item?.id) {
+      setSlug(
+        val
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "")
+      );
+    }
+  };
+
+  const uploadPhoto = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage("Cover image must be 5 MB or smaller.");
+      event.target.value = "";
+      return;
+    }
+
+    setSaving(true);
+    setMessage("");
+
+    const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]+/g, "-");
+    const path = `articles/${Date.now()}-${safeName}`;
+
+    const { error } = await supabase.storage
+      .from("site-media")
+      .upload(path, file, { cacheControl: "3600", upsert: false });
+
+    if (error) {
+      setMessage(error.message);
+    } else {
+      if (item?.cover_image && item.cover_image !== coverImage) {
+        const oldPath = getStoragePathFromUrl(item.cover_image);
+        if (oldPath) {
+          await supabase.storage.from("site-media").remove([oldPath]);
+        }
+      }
+
+      const { data } = supabase.storage.from("site-media").getPublicUrl(path);
+      setCoverImage(data.publicUrl);
+      setMessage("Cover image uploaded successfully.");
+    }
+    setSaving(false);
+    event.target.value = "";
+  };
+
+  const save = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setMessage("");
+
+    const trimmedCoverImage = coverImage.trim() || null;
+
+    const payload = {
+      title,
+      slug,
+      excerpt,
+      content,
+      cover_image: trimmedCoverImage,
+      cover_image_alt: coverImageAlt.trim() || null,
+      is_published: isPublished,
+      updated_by: userId,
+      ...(item?.id ? {} : { created_by: userId }),
+    };
+
+    let error;
+    if (item?.id) {
+      if (item.cover_image && item.cover_image !== trimmedCoverImage) {
+        const oldPath = getStoragePathFromUrl(item.cover_image);
+        if (oldPath) {
+          await supabase.storage.from("site-media").remove([oldPath]);
+        }
+      }
+
+      const res = await supabase
+        .from("articles")
+        .update(payload)
+        .eq("id", item.id);
+      error = res.error;
+    } else {
+      const res = await supabase.from("articles").insert([payload]);
+      error = res.error;
+    }
+
+    setSaving(false);
+    if (!error) {
+      onSaved();
+    } else {
+      setMessage("Error saving article: " + error.message);
+    }
+  };
+
+  return (
+    <form
+      onSubmit={save}
+      className="border border-slate-200 bg-white p-6 shadow-sm"
+    >
+      <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+        <h2 className="text-xl font-black text-slate-950">
+          {item?.id ? "Edit Article" : "New Article"}
+        </h2>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-sm font-bold text-slate-500 hover:text-slate-800"
+        >
+          Cancel
+        </button>
+      </div>
+
+      <div className="mt-6 grid gap-5">
+        <div>
+          <label className="block text-sm font-bold text-slate-700">
+            Title
+          </label>
+          <input
+            className={inputClass}
+            value={title}
+            onChange={handleTitleChange}
+            required
+            maxLength={200}
+            placeholder="Article headline..."
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-bold text-slate-700">
+            Slug (URL path)
+          </label>
+          <input
+            className={inputClass}
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            required
+            maxLength={200}
+            placeholder="my-first-article"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-1">
+            Cover image
+          </label>
+          <div className="grid gap-4 sm:grid-cols-[10rem_1fr] sm:items-start">
+            <div className="aspect-[16/9] overflow-hidden bg-slate-100 border border-slate-200">
+              {coverImage ? (
+                <img
+                  src={coverImage}
+                  alt={coverImageAlt || "Cover preview"}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="grid h-full place-items-center text-xs text-slate-400 font-medium">
+                  No image
+                </div>
+              )}
+            </div>
+            <div className="space-y-3">
+              <label className="inline-flex cursor-pointer items-center gap-2 bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">
+                {saving ? "Working..." : "Upload image file"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  disabled={saving}
+                  onChange={uploadPhoto}
+                />
+              </label>
+              <p className="text-xs text-slate-500">
+                JPG, PNG, or WebP. Maximum 5 MB. Or provide a direct URL below.
+              </p>
+              <input
+                className={inputClass}
+                type="url"
+                value={coverImage}
+                onChange={(e) => setCoverImage(e.target.value)}
+                maxLength={1000}
+                placeholder="https://images.unsplash.com/..."
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-bold text-slate-700">
+            Cover image alt text
+          </label>
+          <input
+            className={inputClass}
+            value={coverImageAlt}
+            onChange={(e) => setCoverImageAlt(e.target.value)}
+            maxLength={240}
+            placeholder="Description for accessibility..."
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-bold text-slate-700">
+            Excerpt / Summary
+          </label>
+          <textarea
+            rows={3}
+            className={inputClass}
+            value={excerpt}
+            onChange={(e) => setExcerpt(e.target.value)}
+            maxLength={500}
+            placeholder="Short summary for list previews..."
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-bold text-slate-700">
+            Full Content
+          </label>
+          <textarea
+            rows={10}
+            className={inputClass}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            required
+            placeholder="Write your article body here..."
+          />
+        </div>
+
+        <label className="flex items-center gap-3 text-sm font-bold text-slate-700">
+          <input
+            type="checkbox"
+            checked={isPublished}
+            onChange={(e) => setIsPublished(e.target.checked)}
+            className="h-5 w-5 accent-emerald-800"
+          />
+          Publish article live on website
+        </label>
+
+        {message && (
+          <p
+            role="status"
+            className="bg-slate-100 p-3 text-sm font-semibold text-slate-700"
+          >
+            {message}
+          </p>
+        )}
+      </div>
+
+      <div className="mt-7 flex items-center gap-4">
+        <button
+          type="submit"
+          disabled={saving}
+          className="inline-flex min-h-11 items-center gap-2 bg-emerald-800 px-5 font-bold text-white hover:bg-emerald-900 disabled:opacity-60"
+        >
+          <Save className="h-4 w-4" />
+          {saving ? "Saving…" : "Save article"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function ArticlesManager({ items, userId, onUpdated }) {
+  const [editing, setEditing] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  const getStoragePathFromUrl = (url) => {
+    if (!url || typeof url !== "string") return null;
+    try {
+      const marker = "/storage/v1/object/public/site-media/";
+      const index = url.indexOf(marker);
+      if (index !== -1) {
+        return decodeURIComponent(url.substring(index + marker.length));
+      }
+    } catch {
+      // Ignore parsing errors
+    }
+    return null;
+  };
+
+  const remove = async (article) => {
+    if (!confirm(`Are you sure you want to delete "${article.title}"?`)) return;
+    setBusy(true);
+
+    // Delete image from storage bucket if it exists
+    if (article.cover_image) {
+      const path = getStoragePathFromUrl(article.cover_image);
+      if (path) {
+        await supabase.storage.from("site-media").remove([path]);
+      }
+    }
+
+    const { error } = await supabase
+      .from("articles")
+      .delete()
+      .eq("id", article.id);
+    setBusy(false);
+
+    if (error) {
+      alert("Error deleting article: " + error.message);
+    } else {
+      onUpdated();
+    }
+  };
+
+  if (editing !== null) {
+    return (
+      <div>
+        <Header
+          title="News & Articles"
+          subtitle="Create and manage announcements and updates."
+        />
+        <ArticleEditor
+          item={editing.id ? editing : null}
+          userId={userId}
+          onSaved={() => {
+            setEditing(null);
+            onUpdated();
+          }}
+          onCancel={() => setEditing(null)}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <Header
+        title="News & Articles"
+        subtitle="Create and manage announcements and updates."
+      />
+      <section className="border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-black text-slate-950">Website articles</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              All news and blog entries published on SIIG.
+            </p>
+          </div>
+          <button
+            onClick={() => setEditing({})}
+            className="inline-flex min-h-11 items-center justify-center gap-2 bg-emerald-800 px-5 font-bold text-white hover:bg-emerald-900"
+          >
+            <Plus className="h-4 w-4" /> Add article
+          </button>
+        </div>
+
+        <div className="mt-6 divide-y divide-slate-100">
+          {items.map((article) => (
+            <div
+              key={article.id}
+              className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="flex items-center gap-4 min-w-0">
+                {article.cover_image ? (
+                  <img
+                    src={article.cover_image}
+                    alt=""
+                    className="h-12 w-16 shrink-0 bg-slate-100 object-cover"
+                  />
+                ) : (
+                  <div className="grid h-12 w-16 shrink-0 place-items-center bg-slate-100 text-xs text-slate-400">
+                    No img
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="truncate font-bold text-slate-900">
+                    {article.title}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    /{article.slug} ·{" "}
+                    {article.is_published ? "🟢 Published" : "🟡 Hidden"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => setEditing(article)}
+                  className="grid h-10 w-10 place-items-center bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  aria-label={`Edit ${article.title}`}
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => remove(article)}
+                  disabled={busy}
+                  className="grid h-10 w-10 place-items-center bg-red-50 text-red-700 hover:bg-red-100"
+                  aria-label={`Delete ${article.title}`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+          {!items.length && (
+            <p className="py-12 text-center text-slate-500">
+              No articles created yet.
+            </p>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 const emptyTeamMember = {
   full_name: "",
   position: "",
@@ -1102,6 +1535,7 @@ export default function AdminPanel() {
     void supabase.auth.signOut({ scope: "local" });
   };
   const [enquiries, setEnquiries] = useState([]);
+  const [articles, setArticles] = useState([]);
   const [contentRows, setContentRows] = useState({});
   const [teamMembers, setTeamMembers] = useState([]);
 
@@ -1112,6 +1546,10 @@ export default function AdminPanel() {
           .from("enquiries")
           .select("*")
           .order("created_at", { ascending: false }),
+        supabase
+          .from("articles")
+          .select("*")
+          .order("created_at", { ascending: false }),
         supabase.from("site_content").select("*"),
         supabase
           .from("team_members")
@@ -1120,6 +1558,7 @@ export default function AdminPanel() {
           .order("created_at", { ascending: true }),
       ]);
     setEnquiries(enquiryData || []);
+    setArticles(articleData || []);
     setTeamMembers(teamData || []);
     const rows = Object.fromEntries(
       (contentData || []).map((row) => [row.section, row])
@@ -1174,6 +1613,14 @@ export default function AdminPanel() {
       );
     if (active === "enquiries")
       return <Enquiries items={enquiries} onUpdated={load} />;
+    if (active === "articles")
+      return (
+        <ArticlesManager
+          items={articles}
+          userId={session.user.id}
+          onUpdated={load}
+        />
+      );
     if (active === "media") return <MediaLibrary />;
     if (active === "settings") return <SettingsPanel user={session.user} />;
     return (

@@ -7,6 +7,7 @@ import PasswordReset from "./pages/PasswordReset";
 import AdminDashboard from "./pages/AdminDashboard";
 import ContentManagement from "./pages/ContentManagement";
 import EnquiriesManagement from "./pages/EnquiriesManagement";
+import ArticlesManagement from "./pages/ArticlesManagement";
 import MediaLibrary from "./pages/MediaLibrary";
 import TeamManagement from "./pages/TeamManagement";
 import CertificationsManagement from "./pages/CertificationsManagement";
@@ -90,6 +91,7 @@ function AdminRoutes() {
         <Route index element={<AdminDashboard />} />
         <Route path="content" element={<ContentManagement userId={userId} />} />
         <Route path="enquiries" element={<EnquiriesManagement />} />
+        <Route path="articles" element={<ArticlesManagement />} />
         <Route path="media" element={<MediaLibrary />} />
         <Route path="team" element={<TeamManagement />} />
         <Route path="certifications" element={<CertificationsManagement />} />
