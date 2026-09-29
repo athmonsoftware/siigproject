@@ -5,7 +5,6 @@ import {
   Shield,
   CheckCircle,
   ArrowRight,
-  Calendar,
   Users,
   Target,
   Award,
@@ -19,6 +18,7 @@ import {
   Clock3,
 } from "lucide-react";
 import { useSiteContent } from "./hooks/useSiteContent";
+import { useTeamMembers } from "./hooks/useTeamMembers";
 import { useTeamMembers } from "./hooks/useTeamMembers";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import AdminRouter from "./admin/AdminRouter";
@@ -40,6 +40,7 @@ const Navbar = ({ showTeam }) => {
     { name: "Training", href: "#training" },
     { name: "About", href: "#about" },
     { name: "Community", href: "#community" },
+    { name: "Team", href: "#team" },
     ...(showTeam ? [{ name: "Team", href: "#team" }] : []),
   ];
 
@@ -124,6 +125,7 @@ const Navbar = ({ showTeam }) => {
   );
 };
 
+const Hero = ({ content }) => {
 const Hero = ({ content, showTeam }) => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/90 to-brand-green/80 text-white pt-32 pb-12">
@@ -172,7 +174,7 @@ const Hero = ({ content, showTeam }) => {
           <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:gap-10">
             <div>
               <span className="inline-block bg-white/15 text-brand-red text-xs px-3 py-1 rounded-full uppercase tracking-widest font-semibold mb-6 border border-white/10">
-                YOUR SAFETY, OUR MISSION
+                {content.eyebrow}
               </span>
 
               <motion.h1
@@ -181,6 +183,7 @@ const Hero = ({ content, showTeam }) => {
                 transition={{ delay: 0.2, duration: 0.8 }}
                 className="mb-6 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-4xl font-black leading-[1.08] tracking-tight text-transparent sm:text-5xl lg:text-6xl"
               >
+                {content.title.split("\n").map((line, index) => <React.Fragment key={line}>{index > 0 && <br />}{line}</React.Fragment>)}
                 {content.title.split("\n").map((line, index) => (
                   <React.Fragment key={line}>
                     {index > 0 && <br />}
@@ -195,7 +198,7 @@ const Hero = ({ content, showTeam }) => {
                 transition={{ delay: 0.4, duration: 0.8 }}
                 className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
               >
-                A Trusted Partner in Health Security-Prepared people.
+                {content.description}
               </motion.p>
 
               <motion.div
@@ -208,14 +211,14 @@ const Hero = ({ content, showTeam }) => {
                   href="#services"
                   className="flex min-h-14 w-full items-center justify-center whitespace-nowrap rounded-lg bg-white px-4 py-4 font-bold text-black shadow-xl transition hover:bg-gray-200 sm:px-6"
                 >
-                  Explore Solutions
+                  {content.primary_button}
                   <ArrowRight className="inline ml-2 w-5 h-5" />
                 </a>
                 <a
                   href="#contact"
                   className="flex min-h-14 w-full items-center justify-center whitespace-nowrap rounded-lg border border-white/20 bg-white/10 px-4 py-4 font-bold text-white backdrop-blur-md transition hover:bg-white/20 sm:px-6"
                 >
-                  Book a Consultation
+                  {content.secondary_button}
                 </a>
               </motion.div>
             </div>
@@ -740,6 +743,8 @@ const TrainingApproach = () => {
               <img
                 src="/images/first-aid-cpr-training.jpg"
                 alt="Participant practising CPR during a first aid training session"
+                src="/images/first-aid-cpr-training.jpg"
+                alt="Participant practising CPR during a first aid training session"
                 className="rounded-2xl shadow-2xl w-full h-auto object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-green/30 to-transparent rounded-2xl"></div>
@@ -847,6 +852,22 @@ const ImpactAttribute = ({ icon: Icon, title, description }) => (
     viewport={{ once: true, amount: 0.4 }}
     className="text-center"
   >
+    <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/20 bg-white/10">
+      <Icon className="h-8 w-8 text-brand-red" aria-hidden="true" />
+    </div>
+    <h3 className="text-xl font-bold text-white md:text-2xl">{title}</h3>
+    <p className="mx-auto mt-3 max-w-xs text-base leading-relaxed text-gray-300">
+      {description}
+    </p>
+  </motion.div>
+);
+const ImpactAttribute = ({ icon: Icon, title, description }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.4 }}
+    className="text-center"
+  >
     <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl border border-white/20 bg-white/10 shadow-lg">
       <Icon className="h-10 w-10 text-brand-red" aria-hidden="true" />
     </div>
@@ -887,6 +908,21 @@ const Impact = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
             <ImpactAttribute
               icon={Shield}
+              title="Practical Training"
+              description="Hands-on instruction designed for confident action in real emergencies."
+            />
+            <ImpactAttribute
+              icon={Target}
+              title="Scenario-Based Learning"
+              description="Repeated practice turns safety knowledge into usable response skills."
+            />
+            <ImpactAttribute
+              icon={Users}
+              title="Workplace & Community Focus"
+              description="Training shaped around the people, setting, and risks of each organisation."
+            />
+            <ImpactAttribute
+              icon={Shield}
               title="Hands-On Skills"
               description="Practical instruction that builds confidence through guided participation."
             />
@@ -908,6 +944,7 @@ const Impact = () => {
 };
 
 const About = ({ content }) => {
+const About = ({ content }) => {
   return (
     <section
       id="about"
@@ -924,7 +961,7 @@ const About = ({ content }) => {
           viewport={{ once: true }}
           className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
         >
-          About Us
+          {content.heading}
         </motion.h2>
 
         <motion.div
@@ -936,32 +973,18 @@ const About = ({ content }) => {
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div>
-              <h3 className="text-2xl font-bold text-white mb-6">Our Story</h3>
+              <h3 className="text-2xl font-bold text-white mb-6">{content.story_title}</h3>
               <p className="text-gray-300 leading-relaxed mb-4">
-                Safety Innovations Impact Group is a professional safety
-                training and compliance company established in February 2025,
-                dedicated to equipping organisations and communities with
-                life-saving skills and practical emergency preparedness.
+                {content.story_paragraph_1}
               </p>
               <p className="text-gray-300 leading-relaxed mb-4">
-                Founded in February 2025, the company was created in response to
-                a growing need: many workplaces meet safety requirements on
-                paper but remain unprepared in real emergencies. Our goal is to
-                bridge the gap between compliance and real-world readiness.
+                {content.story_paragraph_2}
               </p>
               <p className="text-gray-300 leading-relaxed">
-                We provide hands-on first aid and fire safety training designed
-                not just to certify participants, but to give them the
-                confidence to act when seconds matter. Our instructors bring
-                practical experience, structured teaching methods, and
-                scenario-based learning to ensure that knowledge becomes
-                instinct. Every program is tailored to the environment in which
-                it will be used, because emergencies never happen in a classroom
-                — they happen in real workplaces.
+                {content.story_paragraph_3}
               </p>
               <p className="text-brand-red font-semibold mt-4 italic">
-                At Safety Innovations Impact Group, safety is not a checklist,
-                it's our culture.
+                {content.statement}
               </p>
             </div>
             <motion.div
@@ -1101,107 +1124,6 @@ const About = ({ content }) => {
             </div>
           </div>
         </motion.div>
-      </div>
-    </section>
-  );
-};
-
-const Compliance = () => {
-  const certifications = [
-    {
-      name: "Ghana Standards Authority",
-      description: "Certified safety training provider",
-    },
-    {
-      name: "Occupational Safety & Health",
-      description: "OSHA compliant protocols",
-    },
-    {
-      name: "First Aid Certification",
-      description: "Red Cross certified training",
-    },
-    { name: "Fire Safety Compliance", description: "GNFS approved procedures" },
-  ];
-
-  return (
-    <section id="compliance" className="py-24 px-4 bg-brand-green">
-      <div className="max-w-7xl mx-auto">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
-        >
-          Compliance & Certifications
-        </motion.h2>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12"
-        >
-          <h3 className="text-2xl font-bold text-white mb-6">
-            Regulatory Compliance
-          </h3>
-          <p className="text-gray-300 leading-relaxed mb-6">
-            We ensure full compliance with Ghana's workplace safety regulations
-            and international standards. Our team stays updated with the latest
-            regulatory requirements to help your business maintain compliance
-            and avoid penalties.
-          </p>
-          <ul className="space-y-3">
-            <li className="flex items-start gap-3 text-gray-300">
-              <CheckCircle className="w-5 h-5 text-brand-red shrink-0 mt-0.5" />
-              <span>Labor Act compliance and workplace safety standards</span>
-            </li>
-            <li className="flex items-start gap-3 text-gray-300">
-              <CheckCircle className="w-5 h-5 text-brand-red shrink-0 mt-0.5" />
-              <span>Fire safety regulations and emergency protocols</span>
-            </li>
-            <li className="flex items-start gap-3 text-gray-300">
-              <CheckCircle className="w-5 h-5 text-brand-red shrink-0 mt-0.5" />
-              <span>Health and safety risk assessments</span>
-            </li>
-            <li className="flex items-start gap-3 text-gray-300">
-              <CheckCircle className="w-5 h-5 text-brand-red shrink-0 mt-0.5" />
-              <span>Industry-specific compliance requirements</span>
-            </li>
-          </ul>
-        </motion.div>
-
-        <motion.h3
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-2xl font-bold text-center mb-8 text-white"
-        >
-          Our Certifications
-        </motion.h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {certifications.map((cert, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
-              className="backdrop-blur-xl bg-white/10 border border-white/20 p-6 rounded-2xl shadow-xl hover:border-brand-green/50 transition-all duration-300"
-            >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-brand-green/30 rounded-xl">
-                  <Award className="w-6 h-6 text-brand-red" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-bold text-white">{cert.name}</h4>
-                  <p className="text-gray-400 text-sm">{cert.description}</p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
       </div>
     </section>
   );
@@ -1427,6 +1349,7 @@ const CommunityInitiative = () => {
 };
 
 const Contact = ({ content }) => {
+const Contact = ({ content }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -1467,6 +1390,7 @@ const Contact = ({ content }) => {
       }
     } else {
       // Fallback to mailto if Supabase not configured
+      const mailtoLink = `mailto:${content.email}?subject=Enquiry from ${encodeURIComponent(
       const mailtoLink = `mailto:${
         content.email
       }?subject=Enquiry from ${encodeURIComponent(
@@ -1494,7 +1418,7 @@ const Contact = ({ content }) => {
           viewport={{ once: true }}
           className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
         >
-          Contact Us
+          {content.heading}
         </motion.h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -1507,8 +1431,7 @@ const Contact = ({ content }) => {
           >
             <h3 className="text-2xl font-bold text-white mb-6">Get in Touch</h3>
             <p className="text-gray-300 leading-relaxed mb-8">
-              Ready to enhance your workplace safety? Contact us today for a
-              consultation or to learn more about our services.
+              {content.intro}
             </p>
 
             <div className="space-y-6">
@@ -1518,6 +1441,7 @@ const Contact = ({ content }) => {
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">Phone</p>
+                  <a href={`tel:${content.phone_link}`} className="text-white font-semibold hover:underline">{content.phone}</a>
                   <a
                     href={`tel:${content.phone_link}`}
                     className="text-white font-semibold hover:underline"
@@ -1533,6 +1457,7 @@ const Contact = ({ content }) => {
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">Email</p>
+                  <a href={`mailto:${content.email}`} className="text-white font-semibold hover:underline">{content.email}</a>
                   <a
                     href={`mailto:${content.email}`}
                     className="text-white font-semibold hover:underline"
@@ -1558,6 +1483,7 @@ const Contact = ({ content }) => {
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">Instagram</p>
+                  <a href={content.instagram_url} target="_blank" rel="noreferrer" className="text-white font-semibold hover:underline">{content.instagram}</a>
                   <a
                     href={content.instagram_url}
                     target="_blank"
@@ -1681,6 +1607,7 @@ const Contact = ({ content }) => {
 };
 
 const Team = ({ members }) => {
+const Team = ({ members }) => {
   const placeholders = Array.from({ length: 4 }, (_, index) => ({
     id: `placeholder-${index}`,
   }));
@@ -1701,6 +1628,36 @@ const Team = ({ members }) => {
         </motion.h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {members.map((member, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1, duration: 0.5 }}
+              className="backdrop-blur-xl bg-white/10 border border-white/20 p-6 rounded-3xl shadow-xl group hover:border-brand-green/50 transition-all duration-300 text-center"
+            >
+              <div className="w-28 h-28 mx-auto mb-5 overflow-hidden rounded-full bg-gradient-to-br from-brand-green to-brand-red flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                {member.image_url ? (
+                  <img src={member.image_url} alt={member.image_alt || `${member.full_name}, ${member.position}`} className="h-full w-full object-cover" loading="lazy" />
+                ) : (
+                  <span className="text-3xl font-black text-white">{member.full_name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span>
+                )}
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                {member.full_name}
+              </h3>
+              <p className="text-brand-red font-semibold mb-3">{member.position}</p>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                {member.biography}
+              </p>
+            </motion.div>
+          ))}
+          {!members.length && (
+            <div className="md:col-span-2 lg:col-span-4 border border-white/20 bg-white/10 p-8 text-center text-gray-300 rounded-3xl">
+              Team profiles will be introduced here.
+            </div>
+          )}
           {members.length > 0
             ? members.map((member, index) => (
                 <motion.div
@@ -1853,8 +1810,32 @@ const ScrollProgress = () => {
 function App() {
   const content = useSiteContent();
   const teamMembers = useTeamMembers();
+  const teamMembers = useTeamMembers();
 
   return (
+    <Router>
+      <Routes>
+        <Route path="/admin/*" element={<AdminRouter />} />
+        <Route
+          path="*"
+          element={
+            <div className="min-h-screen bg-brand-green text-white font-sans antialiased selection:bg-brand-red selection:text-white">
+              <ScrollProgress />
+              <Hero content={content.hero} />
+              <Services />
+              <TrainingApproach />
+              <Impact />
+              <About content={content.about} />
+              <CommunityInitiative />
+              <Team members={teamMembers} />
+              <Contact content={content.contact} />
+              <Footer />
+              <BackToTop />
+            </div>
+          }
+        />
+      </Routes>
+    </Router>
     <div className="public-site min-h-screen overflow-x-hidden bg-brand-green font-sans text-white antialiased selection:bg-brand-red selection:text-white">
       <ScrollProgress />
       <Hero content={content.hero} showTeam />

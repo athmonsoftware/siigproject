@@ -816,38 +816,22 @@ const TrainingApproach = () => {
   );
 };
 
-const ImpactCounter = ({ target, suffix, label }) => {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    const duration = 2000;
-    const steps = 60;
-    const increment = target / steps;
-    let current = 0;
-
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= target) {
-        setCount(target);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(current));
-      }
-    }, duration / steps);
-
-    return () => clearInterval(timer);
-  }, [target]);
-
-  return (
-    <div className="text-center">
-      <div className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-green to-brand-red mb-2">
-        {count}
-        {suffix}
-      </div>
-      <div className="text-gray-400 text-lg">{label}</div>
+const ImpactAttribute = ({ icon: Icon, title, description }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.4 }}
+    className="text-center"
+  >
+    <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/20 bg-white/10">
+      <Icon className="h-8 w-8 text-brand-red" aria-hidden="true" />
     </div>
-  );
-};
+    <h3 className="text-xl font-bold text-white md:text-2xl">{title}</h3>
+    <p className="mx-auto mt-3 max-w-xs text-base leading-relaxed text-gray-300">
+      {description}
+    </p>
+  </motion.div>
+);
 
 const Impact = () => {
   return (
@@ -860,20 +844,21 @@ const Impact = () => {
           className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-2xl"
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
-            <ImpactCounter target={500} suffix="+" label="Businesses Secured" />
-            <ImpactCounter
-              target={10000}
-              suffix="+"
-              label="Trainees Certified"
+            <ImpactAttribute
+              icon={Shield}
+              title="Practical Training"
+              description="Hands-on instruction designed for confident action in real emergencies."
             />
-            <div className="text-center">
-              <div className="flex justify-center mb-2">
-                <Calendar className="w-16 h-16 text-brand-red" />
-              </div>
-              <div className="text-gray-400 text-lg">
-                24/7 Response Readiness
-              </div>
-            </div>
+            <ImpactAttribute
+              icon={Target}
+              title="Scenario-Based Learning"
+              description="Repeated practice turns safety knowledge into usable response skills."
+            />
+            <ImpactAttribute
+              icon={Users}
+              title="Workplace & Community Focus"
+              description="Training shaped around the people, setting, and risks of each organisation."
+            />
           </div>
         </motion.div>
       </div>
