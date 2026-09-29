@@ -15,7 +15,6 @@ const navigation = [
     label: "Certifications",
     path: "/admin/certifications",
   },
-  { id: "users", label: "Users", path: "/admin/users" },
   { id: "settings", label: "Settings", path: "/admin/settings" },
 ];
 

@@ -136,7 +136,7 @@ function Topbar({ contact }) {
   );
 }
 
-function Navbar({ hasTeam }) {
+function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -156,7 +156,7 @@ function Navbar({ hasTeam }) {
     { name: "Our Approach", href: "#training" },
     { name: "About", href: "#about" },
     { name: "Community", href: "#community" },
-    ...(hasTeam ? [{ name: "Team", href: "#team" }] : []),
+    { name: "Team", href: "#team" },
   ];
 
   const close = () => setIsOpen(false);
@@ -930,7 +930,9 @@ function CommunityInitiative() {
 }
 
 function Team({ members }) {
-  if (!members.length) return null;
+  const placeholders = Array.from({ length: 4 }, (_, index) => ({
+    id: `placeholder-${index}`,
+  }));
 
   return (
     <section id="team" className="bg-bg-alt py-[clamp(72px,10vw,120px)]">
@@ -945,7 +947,7 @@ function Team({ members }) {
           </h2>
         </motion.header>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-6">
-          {members.map((member) => {
+          {members.length > 0 ? members.map((member) => {
             const name = member.full_name || member.name;
             const role = member.position || member.role;
             const bio = member.biography || member.description;
@@ -981,7 +983,23 @@ function Team({ members }) {
                 </div>
               </motion.article>
             );
-          })}
+          }) : placeholders.map((placeholder, index) => (
+            <motion.article
+              key={placeholder.id}
+              {...fadeUp}
+              transition={{ ...fadeUp.transition, delay: index * 0.06 }}
+              className="overflow-hidden rounded-[22px] border border-line bg-white"
+              aria-label="Team member profile placeholder"
+            >
+              <div className="grid aspect-square place-items-center bg-green-50 text-green-700">
+                <Users className="h-16 w-16 opacity-60" aria-hidden="true" />
+              </div>
+              <div className="px-[22px] pb-6 pt-5">
+                <div className="mb-3 h-5 w-3/4 rounded bg-green-100" />
+                <div className="h-4 w-1/2 rounded bg-red-100" />
+              </div>
+            </motion.article>
+          ))}
         </div>
       </div>
     </section>
@@ -1382,7 +1400,7 @@ function PublicSite() {
       {/* Sticky Header Wrapper for Topbar and Navbar */}
       <div className="sticky top-0 z-[100] w-full bg-white shadow-sm">
         <Topbar contact={contact} />
-        <Navbar hasTeam={members.length > 0} />
+        <Navbar />
       </div>
 
       <Hero content={hero} />
