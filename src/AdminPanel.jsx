@@ -585,20 +585,6 @@ function ArticleEditor({ item, userId, onSaved, onCancel }) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
-  const getStoragePathFromUrl = (url) => {
-    if (!url || typeof url !== "string") return null;
-    try {
-      const marker = "/storage/v1/object/public/site-media/";
-      const index = url.indexOf(marker);
-      if (index !== -1) {
-        return decodeURIComponent(url.substring(index + marker.length));
-      }
-    } catch {
-      // Ignore parsing errors
-    }
-    return null;
-  };
-
   const handleTitleChange = (e) => {
     const val = e.target.value;
     setTitle(val);
@@ -634,13 +620,6 @@ function ArticleEditor({ item, userId, onSaved, onCancel }) {
     if (error) {
       setMessage(error.message);
     } else {
-      if (item?.cover_image && item.cover_image !== coverImage) {
-        const oldPath = getStoragePathFromUrl(item.cover_image);
-        if (oldPath) {
-          await supabase.storage.from("site-media").remove([oldPath]);
-        }
-      }
-
       const { data } = supabase.storage.from("site-media").getPublicUrl(path);
       setCoverImage(data.publicUrl);
       setMessage("Cover image uploaded successfully.");
@@ -670,13 +649,6 @@ function ArticleEditor({ item, userId, onSaved, onCancel }) {
 
     let error;
     if (item?.id) {
-      if (item.cover_image && item.cover_image !== trimmedCoverImage) {
-        const oldPath = getStoragePathFromUrl(item.cover_image);
-        if (oldPath) {
-          await supabase.storage.from("site-media").remove([oldPath]);
-        }
-      }
-
       const res = await supabase
         .from("articles")
         .update(payload)
@@ -865,31 +837,11 @@ function ArticlesManager({ items, userId, onUpdated }) {
   const [editing, setEditing] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  const getStoragePathFromUrl = (url) => {
-    if (!url || typeof url !== "string") return null;
-    try {
-      const marker = "/storage/v1/object/public/site-media/";
-      const index = url.indexOf(marker);
-      if (index !== -1) {
-        return decodeURIComponent(url.substring(index + marker.length));
-      }
-    } catch {
-      // Ignore parsing errors
-    }
-    return null;
-  };
-
   const remove = async (article) => {
     if (!confirm(`Are you sure you want to delete "${article.title}"?`)) return;
     setBusy(true);
 
-    // Delete image from storage bucket if it exists
-    if (article.cover_image) {
-      const path = getStoragePathFromUrl(article.cover_image);
-      if (path) {
-        await supabase.storage.from("site-media").remove([path]);
-      }
-    }
+    // Storage deletion block removed so images remain safe in the bucket when an article is deleted.
 
     const { error } = await supabase
       .from("articles")
@@ -1003,7 +955,6 @@ function ArticlesManager({ items, userId, onUpdated }) {
     </div>
   );
 }
-
 const emptyTeamMember = {
   full_name: "",
   position: "",

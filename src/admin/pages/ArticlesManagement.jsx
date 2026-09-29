@@ -29,20 +29,6 @@ export default function ArticlesManagement() {
   const [coverImage, setCoverImage] = useState("");
   const [isPublished, setIsPublished] = useState(true);
 
-  const getStoragePathFromUrl = (url) => {
-    if (!url || typeof url !== "string") return null;
-    try {
-      const marker = "/storage/v1/object/public/site-media/";
-      const index = url.indexOf(marker);
-      if (index !== -1) {
-        return decodeURIComponent(url.substring(index + marker.length));
-      }
-    } catch {
-      // Ignore parsing errors
-    }
-    return null;
-  };
-
   const load = async () => {
     const { data } = await supabase
       .from("articles")
@@ -114,13 +100,6 @@ export default function ArticlesManagement() {
     if (error) {
       setMessage(error.message);
     } else {
-      if (editingItem?.cover_image && editingItem.cover_image !== coverImage) {
-        const oldPath = getStoragePathFromUrl(editingItem.cover_image);
-        if (oldPath) {
-          await supabase.storage.from("site-media").remove([oldPath]);
-        }
-      }
-
       const { data } = supabase.storage.from("site-media").getPublicUrl(path);
       setCoverImage(data.publicUrl);
       setMessage("Cover image uploaded successfully.");
@@ -145,16 +124,6 @@ export default function ArticlesManagement() {
 
     let error;
     if (editingItem?.id) {
-      if (
-        editingItem.cover_image &&
-        editingItem.cover_image !== payload.cover_image
-      ) {
-        const oldPath = getStoragePathFromUrl(editingItem.cover_image);
-        if (oldPath) {
-          await supabase.storage.from("site-media").remove([oldPath]);
-        }
-      }
-
       const res = await supabase
         .from("articles")
         .update(payload)
@@ -177,18 +146,11 @@ export default function ArticlesManagement() {
   const deleteArticle = async (item) => {
     if (!confirm(`Are you sure you want to delete "${item.title}"?`)) return;
 
-    // Delete associated image from bucket if it exists
-    if (item.cover_image) {
-      const path = getStoragePathFromUrl(item.cover_image);
-      if (path) {
-        await supabase.storage.from("site-media").remove([path]);
-      }
-    }
-
     const { error } = await supabase
       .from("articles")
       .delete()
       .eq("id", item.id);
+
     if (error) {
       alert("Error deleting article: " + error.message);
     } else {
