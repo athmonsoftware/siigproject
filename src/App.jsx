@@ -1,1360 +1,1017 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Heart,
-  Shield,
-  CheckCircle,
   ArrowRight,
-  Users,
-  Target,
-  Award,
-  Mail,
-  Phone,
-  MapPin,
-  Send,
-  Menu,
-  X,
   ArrowUp,
+  Building2,
+  ClipboardList,
   Clock3,
+  Flame,
+  GraduationCap,
+  HandHeart,
+  HardHat,
+  Heart,
+  Home,
+  Instagram,
+  Lock,
+  Mail,
+  Menu,
+  Package,
+  Phone,
+  Send,
+  Shield,
+  Target,
+  Users,
+  X,
 } from "lucide-react";
 import { useSiteContent } from "./hooks/useSiteContent";
-import { useTeamMembers } from "./hooks/useTeamMembers";
 import { useTeamMembers } from "./hooks/useTeamMembers";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import AdminRouter from "./admin/AdminRouter";
 
-const Navbar = ({ showTeam }) => {
+const INTEREST_OPTIONS = [
+  "General enquiry",
+  "First Aid / CPR Training",
+  "Fire Safety Training",
+  "Workplace Safety & Compliance",
+  "Event Safety & Care Support",
+  "Community Partnership",
+];
+
+const fadeUp = {
+  initial: { opacity: 0, y: 24 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, amount: 0.2 },
+  transition: { duration: 0.6, ease: [0.2, 0.7, 0.2, 1] },
+};
+
+function Brand({ light = false }) {
+  return (
+    <a href="#top" className="mr-auto inline-flex items-center gap-3">
+      <img
+        src="/logo.png"
+        alt=""
+        width="48"
+        height="48"
+        className="h-12 w-12 rounded-[10px] object-contain"
+      />
+      <span className="flex flex-col font-display leading-tight">
+        <strong
+          className={`text-[1.05rem] font-extrabold tracking-tight ${
+            light ? "text-white" : "text-green-800"
+          }`}
+        >
+          Safety Innovations
+        </strong>
+        <span
+          className={`mt-[3px] text-[0.72rem] font-bold uppercase tracking-[0.16em] ${
+            light ? "text-[#f3b5bf]" : "text-red-600"
+          }`}
+        >
+          Impact Group
+        </span>
+      </span>
+      <span className="sr-only">Safety Innovations Impact Group — home</span>
+    </a>
+  );
+}
+
+function CheckList({ items, light = false, columns = false }) {
+  return (
+    <ul
+      className={`checklist grid gap-2.5 ${light ? "checklist-light" : ""} ${
+        columns ? "sm:grid-cols-2 sm:gap-x-6" : ""
+      }`}
+    >
+      {items.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
+  );
+}
+
+function Topbar({ contact }) {
+  return (
+    <div className="bg-green-950 text-[0.84rem] text-white/80">
+      <div className="mx-auto flex min-h-10 max-w-site items-center justify-between gap-4 px-[clamp(16px,4vw,32px)]">
+        <p className="hidden text-[0.74rem] font-semibold uppercase tracking-[0.08em] text-white sm:block">
+          Your Safety, Our Mission
+        </p>
+        <ul className="flex items-center justify-center gap-4 sm:gap-[22px]">
+          <li>
+            <a
+              href={`tel:${contact.phone_link}`}
+              className="inline-flex items-center gap-[7px] transition hover:text-white"
+            >
+              <Phone className="h-4 w-4" />
+              {contact.phone}
+            </a>
+          </li>
+          <li>
+            <a
+              href={`mailto:${contact.email}`}
+              className="inline-flex items-center gap-[7px] transition hover:text-white"
+            >
+              <Mail className="h-4 w-4" />
+              <span className="hidden sm:inline">{contact.email}</span>
+            </a>
+          </li>
+          <li>
+            <a
+              href={contact.instagram_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-[7px] transition hover:text-white"
+            >
+              <Instagram className="h-4 w-4" />
+              <span className="sr-only">Instagram</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function Navbar({ hasTeam }) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const navLinks = [
     { name: "Services", href: "#services" },
-    { name: "Training", href: "#training" },
+    { name: "Event Safety", href: "#events" },
+    { name: "Our Approach", href: "#training" },
     { name: "About", href: "#about" },
     { name: "Community", href: "#community" },
-    { name: "Team", href: "#team" },
-    ...(showTeam ? [{ name: "Team", href: "#team" }] : []),
+    ...(hasTeam ? [{ name: "Team", href: "#team" }] : []),
   ];
 
+  const close = () => setIsOpen(false);
+
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 w-full max-w-6xl mx-auto px-4 backdrop-blur-md border rounded-2xl p-4 flex justify-between items-center z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-brand-green/95 border-white/30 shadow-xl my-0"
-          : "bg-white/10 border-white/20 my-6"
+    <header
+      className={`sticky top-0 z-[100] border-b bg-white/92 backdrop-blur-[12px] backdrop-saturate-150 transition ${
+        scrolled ? "border-line shadow-sm" : "border-transparent"
       }`}
     >
-      <div className="flex items-center gap-3">
-        <img src="/logo.png" alt="SIIG Logo" className="h-12 w-auto" />
-        <div className="hidden sm:block">
-          <div className="font-bold text-xl tracking-wide text-white">SIIG</div>
-        </div>
-      </div>
-
-      {/* Desktop Navigation */}
-      <div className="hidden md:flex space-x-8 text-sm text-gray-300">
-        {navLinks.map((link) => (
-          <a
-            key={link.name}
-            href={link.href}
-            className="hover:text-white transition relative group"
-            onClick={() => setIsOpen(false)}
-          >
-            {link.name}
-            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-red transition-all duration-300 group-hover:w-full"></span>
-          </a>
-        ))}
-      </div>
-
-      <a
-        href="#contact"
-        className="hidden md:block bg-brand-green hover:bg-brand-green/80 text-white px-4 py-2 rounded-xl text-sm font-semibold transition shadow-lg shadow-brand-green/20"
-      >
-        Contact Us
-      </a>
-
-      {/* Mobile Menu Button */}
-      <button
-        className="md:hidden p-2 text-white"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-      </button>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="absolute top-full left-0 right-0 mt-2 backdrop-blur-xl bg-brand-green/95 border border-white/20 rounded-2xl p-6 md:hidden"
-          >
-            <div className="flex flex-col space-y-4">
-              {navLinks.map((link) => (
+      <div className="mx-auto flex h-[76px] max-w-site items-center gap-6 px-[clamp(16px,4vw,32px)] max-[980px]:h-[68px]">
+        <Brand />
+        <nav
+          className={`max-[980px]:fixed max-[980px]:inset-x-0 max-[980px]:top-[calc(40px+68px)] max-[980px]:max-h-[calc(100vh-108px)] max-[980px]:overflow-y-auto max-[980px]:border-t max-[980px]:border-line max-[980px]:bg-white max-[980px]:px-[clamp(16px,4vw,32px)] max-[980px]:pb-6 max-[980px]:pt-3 max-[980px]:shadow-brand-lg ${
+            isOpen
+              ? "max-[980px]:visible max-[980px]:opacity-100"
+              : "max-[980px]:invisible max-[980px]:opacity-0"
+          }`}
+          aria-label="Primary"
+        >
+          <ul className="flex items-center gap-1 max-[980px]:flex-col max-[980px]:items-stretch">
+            {navLinks.map((link) => (
+              <li key={link.name}>
                 <a
-                  key={link.name}
                   href={link.href}
-                  className="text-white hover:text-brand-red transition text-lg font-medium"
-                  onClick={() => setIsOpen(false)}
+                  onClick={close}
+                  className="relative block rounded-lg px-3 py-2 text-[0.94rem] font-medium text-body transition hover:bg-green-50 hover:text-green-800 max-[980px]:rounded-none max-[980px]:border-b max-[980px]:border-line max-[980px]:px-1 max-[980px]:py-3.5 max-[980px]:text-[1.05rem] max-[980px]:hover:bg-transparent"
                 >
                   {link.name}
                 </a>
-              ))}
+              </li>
+            ))}
+            <li className="mt-[18px] hidden max-[980px]:block">
               <a
                 href="#contact"
-                className="bg-brand-green hover:bg-brand-green/80 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg shadow-brand-green/20 text-center"
-                onClick={() => setIsOpen(false)}
+                onClick={close}
+                className="btn-primary w-full py-3.5"
               >
-                Contact Us
+                Book a Consultation
               </a>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </nav>
-  );
-};
-
-const Hero = ({ content }) => {
-const Hero = ({ content, showTeam }) => {
-  return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/90 to-brand-green/80 text-white pt-32 pb-12">
-      {/* Glassmorphic Navbar */}
-      <Navbar showTeam={showTeam} />
-
-      {/* Animated Background Particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-2 h-2 bg-brand-red/30 rounded-full"
-            initial={{
-              x: Math.random() * 100 + "%",
-              y: Math.random() * 100 + "%",
-              scale: Math.random() * 0.5 + 0.5,
-            }}
-            animate={{
-              y: [0, -100, 0],
-              opacity: [0, 1, 0],
-            }}
-            transition={{
-              duration: Math.random() * 10 + 10,
-              repeat: Infinity,
-              delay: Math.random() * 5,
-            }}
-          />
-        ))}
+            </li>
+          </ul>
+        </nav>
+        <a
+          href="#contact"
+          className="btn-primary hidden min-[981px]:inline-flex"
+        >
+          Book a Consultation
+        </a>
+        <button
+          className="ml-2 hidden rounded-lg p-2 text-green-800 max-[980px]:inline-grid max-[980px]:place-items-center"
+          aria-label={isOpen ? "Close menu" : "Open menu"}
+          aria-expanded={isOpen}
+          onClick={() => setIsOpen((open) => !open)}
+        >
+          {isOpen ? (
+            <X className="h-[26px] w-[26px]" />
+          ) : (
+            <Menu className="h-[26px] w-[26px]" />
+          )}
+        </button>
       </div>
+    </header>
+  );
+}
 
-      {/* Ambient Background Glows */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-red rounded-full mix-blend-screen filter blur-[120px] opacity-20 animate-pulse pointer-events-none"></div>
-      <div
-        className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-brand-blue rounded-full mix-blend-screen filter blur-[120px] opacity-15 animate-pulse pointer-events-none"
-        style={{ animationDelay: "-3s" }}
-      ></div>
+function Hero({ content }) {
+  const title =
+    content.title || "Next-generation safety.\nUncompromising protection.";
+  const [first, ...rest] = title.split("\n");
 
-      {/* Hero Content Area */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="relative z-10 mx-auto mt-8 w-full max-w-6xl px-4 text-center sm:px-6 lg:mt-12"
-      >
-        <div className="rounded-3xl border border-white/20 bg-white/10 p-5 shadow-2xl backdrop-blur-xl sm:p-8 lg:p-12">
-          <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:gap-10">
-            <div>
-              <span className="inline-block bg-white/15 text-brand-red text-xs px-3 py-1 rounded-full uppercase tracking-widest font-semibold mb-6 border border-white/10">
-                {content.eyebrow}
-              </span>
-
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.8 }}
-                className="mb-6 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-4xl font-black leading-[1.08] tracking-tight text-transparent sm:text-5xl lg:text-6xl"
-              >
-                {content.title.split("\n").map((line, index) => <React.Fragment key={line}>{index > 0 && <br />}{line}</React.Fragment>)}
-                {content.title.split("\n").map((line, index) => (
-                  <React.Fragment key={line}>
-                    {index > 0 && <br />}
-                    {line}
-                  </React.Fragment>
-                ))}
-              </motion.h1>
-
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.8 }}
-                className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
-              >
-                {content.description}
-              </motion.p>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.8 }}
-                className="mx-auto grid w-full max-w-xl grid-cols-1 gap-3 sm:grid-cols-2"
-              >
-                <a
-                  href="#services"
-                  className="flex min-h-14 w-full items-center justify-center whitespace-nowrap rounded-lg bg-white px-4 py-4 font-bold text-black shadow-xl transition hover:bg-gray-200 sm:px-6"
-                >
-                  {content.primary_button}
-                  <ArrowRight className="inline ml-2 w-5 h-5" />
-                </a>
-                <a
-                  href="#contact"
-                  className="flex min-h-14 w-full items-center justify-center whitespace-nowrap rounded-lg border border-white/20 bg-white/10 px-4 py-4 font-bold text-white backdrop-blur-md transition hover:bg-white/20 sm:px-6"
-                >
-                  {content.secondary_button}
-                </a>
-              </motion.div>
-            </div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="relative"
-            >
-              <img
-                src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&h=500&fit=crop"
-                alt="Safety Training"
-                className="aspect-[4/3] w-full rounded-2xl object-cover object-center shadow-2xl hue-rotate-15 sm:aspect-[16/10] lg:aspect-[4/5]"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-green/50 to-transparent rounded-2xl"></div>
-            </motion.div>
+  return (
+    <section className="relative isolate overflow-hidden bg-green-900 pb-0 pt-[clamp(72px,12vw,140px)] text-white">
+      <div className="absolute inset-0 -z-10" aria-hidden="true">
+        <img
+          src="/images/fire-safety-training.jpg"
+          alt=""
+          className="h-full w-full object-cover object-[60%_40%]"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(95deg,rgba(6,42,31,.97)_0%,rgba(8,48,36,.9)_42%,rgba(10,53,40,.55)_75%,rgba(10,53,40,.35)_100%),linear-gradient(0deg,rgba(6,42,31,.9)_0%,rgba(6,42,31,0)_40%)]" />
+      </div>
+      <div className="mx-auto max-w-site px-[clamp(16px,4vw,32px)]">
+        <div className="max-w-[800px]">
+          <p className="eyebrow-light">{content.eyebrow}</p>
+          <h1 className="font-display text-[clamp(2.3rem,5.2vw,3.9rem)] font-extrabold leading-[1.08] tracking-[-0.025em] text-white">
+            {first}
+            {rest.length > 0 && (
+              <>
+                <br />
+                <span className="text-[#f5c6cd]">{rest.join(" ")}</span>
+              </>
+            )}
+          </h1>
+          <p className="mb-9 mt-6 max-w-[580px] text-[clamp(1.05rem,1.6vw,1.2rem)] text-white/85">
+            {content.description}
+          </p>
+          <div className="flex flex-wrap gap-3.5">
+            <a href="#services" className="btn-primary-lg max-[480px]:w-full">
+              {content.primary_button}
+              <ArrowRight className="h-[1.15em] w-[1.15em]" />
+            </a>
+            <a href="#contact" className="btn-ghost max-[480px]:w-full">
+              {content.secondary_button}
+            </a>
           </div>
         </div>
-      </motion.div>
-    </section>
-  );
-};
-
-const ServiceCard = ({ icon: Icon, title, description, features, delay }) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay, duration: 0.6 }}
-      className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl group hover:border-brand-green/50 transition-all duration-300"
-    >
-      <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-brand-green to-brand-red mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-brand-green/20">
-        <Icon className="w-8 h-8 text-white" />
-      </div>
-
-      <h3 className="text-2xl font-bold mb-4 text-white">{title}</h3>
-      <p className="text-gray-300 mb-6 leading-relaxed">{description}</p>
-
-      {features && (
-        <ul className="space-y-2">
-          {features.map((feature, index) => (
-            <li key={index} className="flex items-center text-gray-400">
-              <CheckCircle className="w-4 h-4 mr-2 text-brand-red shrink-0" />
-              <span>{feature}</span>
+        <ul className="mt-[clamp(64px,9vw,110px)] grid grid-cols-4 border-t border-white/16 max-[980px]:grid-cols-2 max-[480px]:grid-cols-1">
+          {[
+            {
+              icon: Heart,
+              title: "First Aid & CPR",
+              note: "Certification & refreshers",
+            },
+            {
+              icon: Flame,
+              title: "Fire Safety",
+              note: "Wardens, drills & evacuation",
+            },
+            {
+              icon: ClipboardList,
+              title: "Compliance",
+              note: "Audits & risk assessments",
+            },
+            { icon: Users, title: "Event Cover", note: "On-site responders" },
+          ].map((item, index) => (
+            <li
+              key={item.title}
+              className={`flex items-start gap-3.5 py-[28px] pr-6 max-[480px]:border-l-0 max-[480px]:px-0 max-[480px]:py-[18px] ${
+                index > 0
+                  ? "border-l border-white/12 pl-6 max-[980px]:[&:nth-child(3)]:border-l-0 max-[980px]:[&:nth-child(3)]:pl-0 max-[980px]:[&:nth-child(n+3)]:border-t max-[980px]:[&:nth-child(n+3)]:border-white/12 max-[480px]:border-l-0 max-[480px]:border-t max-[480px]:pl-0"
+                  : ""
+              }`}
+            >
+              <item.icon className="mt-0.5 h-7 w-7 shrink-0 text-[#f5c6cd]" />
+              <div>
+                <strong className="block font-display text-[1.02rem] font-bold text-white">
+                  {item.title}
+                </strong>
+                <span className="text-[0.88rem] text-white/70">
+                  {item.note}
+                </span>
+              </div>
             </li>
           ))}
         </ul>
-      )}
-    </motion.div>
-  );
-};
-
-const Services = () => {
-  return (
-    <section
-      id="services"
-      className="relative bg-brand-green px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
-    >
-      <div className="max-w-7xl mx-auto">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
-        >
-          Our Services
-        </motion.h2>
-
-        {/* First Aid Training */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12 hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
-        >
-          <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-brand-green/30 rounded-xl">
-              <Heart className="w-8 h-8 text-brand-red" />
-            </div>
-            <h3 className="text-2xl font-bold text-white">
-              First Aid Training
-            </h3>
-          </div>
-          <p className="text-gray-300 leading-relaxed mb-6">
-            Our first aid programs focus on realistic response, not
-            memorisation. Participants practice repeatedly until they can act
-            confidently without hesitation.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <h4 className="text-lg font-bold text-white mb-4">
-                Courses Include:
-              </h4>
-              <ul className="space-y-2 text-gray-400">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Basic First Aid
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  CPR & AED Use
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Workplace First Aid Certification
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Pediatric First Aid
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Emergency Scene Management
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Refresher & Recertification Training
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-lg font-bold text-white mb-4">
-                Participants Learn How To:
-              </h4>
-              <ul className="space-y-2 text-gray-400">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Assess an emergency safely
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Stabilise injured persons
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Perform CPR correctly
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Control bleeding and shock
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Manage medical emergencies until professionals arrive
-                </li>
-              </ul>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Fire Safety Training */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12 hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
-        >
-          <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-brand-green/30 rounded-xl">
-              <Shield className="w-8 h-8 text-brand-red" />
-            </div>
-            <h3 className="text-2xl font-bold text-white">
-              Fire Safety Training
-            </h3>
-          </div>
-          <p className="text-gray-300 leading-relaxed mb-6">
-            Fire emergencies escalate rapidly. Our fire safety training ensures
-            staff know exactly what to do in the first critical minutes.
-          </p>
-
-          <img
-            src="/images/fire-safety-training.jpg"
-            alt="Participants practising fire extinguisher use during an outdoor safety exercise"
-            className="mb-8 aspect-[16/9] w-full rounded-2xl object-cover object-center shadow-lg"
-            loading="lazy"
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <h4 className="text-lg font-bold text-white mb-4">
-                Programs Include:
-              </h4>
-              <ul className="space-y-2 text-gray-400">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Fire Awareness
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Fire Warden / Fire Marshal Training
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Fire Extinguisher Identification & Use
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Evacuation Procedures
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Practical Fire Drills
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-lg font-bold text-white mb-4">
-                Participants Learn How To:
-              </h4>
-              <ul className="space-y-2 text-gray-400">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Assess an emergency safely
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Stabilise injured persons
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Perform CPR correctly
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Control bleeding and shock
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Manage medical emergencies until professionals arrive
-                </li>
-              </ul>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Workplace Safety & Compliance Support */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12 hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
-        >
-          <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-brand-green/30 rounded-xl">
-              <CheckCircle className="w-8 h-8 text-brand-red" />
-            </div>
-            <h3 className="text-2xl font-bold text-white">
-              Workplace Safety & Compliance Support
-            </h3>
-          </div>
-          <p className="text-gray-300 leading-relaxed mb-6">
-            We assist organisations in moving beyond paperwork toward real
-            readiness.
-          </p>
-
-          <img
-            src="/images/workplace-safety.jpg"
-            alt="Safety professionals reviewing a workplace plan while wearing protective equipment"
-            className="mb-8 aspect-[16/9] w-full rounded-2xl object-cover object-center shadow-lg"
-            loading="lazy"
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <h4 className="text-lg font-bold text-white mb-4">
-                Services Include:
-              </h4>
-              <ul className="space-y-2 text-gray-400">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Emergency Evacuation Planning
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Risk Assessments
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Safety Audits & Inspections
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Safety File Guidance
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Toolbox Talks & Staff Safety Briefings
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Safety Equipment Guidance
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-lg font-bold text-white mb-4">
-                Equipment Guidance:
-              </h4>
-              <p className="text-gray-400 mb-4">
-                We advise organisations on appropriate placement and selection
-                of:
-              </p>
-              <ul className="space-y-2 text-gray-400">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  First Aid Kits
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Fire Extinguishers
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Emergency Signage
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  AED Devices
-                </li>
-              </ul>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Event Safety and Care Support Services */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl hover:shadow-2xl hover:border-brand-red/50 transition-all duration-500 group"
-        >
-          <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-brand-green/30 rounded-xl">
-              <Users className="w-8 h-8 text-brand-red" />
-            </div>
-            <h3 className="text-2xl font-bold text-white">
-              Event Safety and Care Support Services
-            </h3>
-          </div>
-          <p className="text-gray-300 leading-relaxed mb-6">
-            Professional Protection for Gatherings of Any Size. Public and
-            private events bring people together — but they also increase risk.
-            Large crowds, unfamiliar environments, medical conditions, and
-            unexpected incidents require immediate, calm, and qualified
-            response.
-          </p>
-          <p className="text-gray-300 leading-relaxed mb-6">
-            Safety Innovations Impact Group provides trained safety personnel to
-            manage medical situations, assist vulnerable guests, and support
-            organisers in maintaining a safe event environment. Our presence
-            allows organisers to focus on the event while we focus on safety.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            <div>
-              <h4 className="text-lg font-bold text-white mb-4">
-                On-Site Event First Aid Cover
-              </h4>
-              <p className="text-gray-400 mb-4">
-                We deploy trained responders equipped to handle medical
-                incidents from minor injuries to urgent emergencies.
-              </p>
-              <p className="text-gray-400 mb-4">We manage:</p>
-              <ul className="space-y-2 text-gray-400">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Fainting and dehydration
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Cuts and minor injuries
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Allergic reactions
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Breathing difficulties
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Medical episodes
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Stabilisation before ambulance arrival
-                </li>
-              </ul>
-              <p className="text-gray-400 mt-4">
-                Service includes: Pre-event risk assessment, Strategically
-                positioned responders, Communication coordination, Incident
-                documentation
-              </p>
-            </div>
-
-            <div>
-              <h4 className="text-lg font-bold text-white mb-4">
-                Elderly & Assisted Guest Support
-              </h4>
-              <p className="text-gray-400 mb-4">
-                Some attendees require additional care, supervision, or mobility
-                assistance during events. Our team provides respectful,
-                non-intrusive assistance ensuring comfort and dignity throughout
-                the event.
-              </p>
-              <p className="text-gray-400 mb-4">Support services:</p>
-              <ul className="space-y-2 text-gray-400">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Mobility assistance
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Monitoring health conditions
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Medication reminders (non-clinical)
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Heat and fatigue monitoring
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Calm reassurance during crowded situations
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Escorting to rest or medical areas
-                </li>
-              </ul>
-              <p className="text-gray-400 mt-4">
-                Especially valuable for: Family gatherings, Community events,
-                Conferences, Religious gatherings, Corporate functions
-              </p>
-            </div>
-          </div>
-
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 p-6 rounded-2xl">
-            <h4 className="text-lg font-bold text-white mb-4">
-              Fire & Emergency Preparedness Presence
-            </h4>
-            <p className="text-gray-400 mb-4">
-              Where required, we support event organisers with preventative
-              safety oversight. Includes:
-            </p>
-            <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-gray-400">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                Identifying hazards
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                Monitoring exits and crowd flow
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                Assisting with evacuation if necessary
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                Coordinating with emergency services
-              </li>
-            </ul>
-          </div>
-        </motion.div>
       </div>
     </section>
   );
-};
+}
 
-const TrainingApproach = () => {
+function ServicesOverview() {
+  const cards = [
+    {
+      href: "#first-aid",
+      icon: Heart,
+      title: "First Aid Training",
+      text: "Hands-on first aid, CPR and AED programmes focused on realistic response, not memorisation.",
+    },
+    {
+      href: "#fire-safety",
+      icon: Flame,
+      title: "Fire Safety Training",
+      text: "Teaches staff what to do in the first critical minutes of a fire, from extinguisher use to evacuation.",
+    },
+    {
+      href: "#compliance",
+      icon: ClipboardList,
+      title: "Workplace Compliance",
+      text: "Risk assessments, audits and evacuation planning that move organisations beyond paperwork.",
+    },
+    {
+      href: "#events",
+      icon: Users,
+      title: "Event Safety & Care",
+      text: "Trained responders and guest-support personnel for gatherings of any size.",
+    },
+  ];
+
   return (
-    <section
-      id="training"
-      className="relative overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
-    >
-      {/* Decorative background elements */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-red/10 rounded-full blur-3xl animate-pulse"></div>
-      <div
-        className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-brand-blue/10 rounded-full blur-3xl animate-pulse"
-        style={{ animationDelay: "-2s" }}
-      ></div>
-
-      <div className="max-w-7xl mx-auto relative z-10">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
+    <section id="services" className="py-[clamp(72px,10vw,120px)]">
+      <div className="mx-auto max-w-site px-[clamp(16px,4vw,32px)]">
+        <motion.header
+          {...fadeUp}
+          className="mx-auto mb-[clamp(40px,6vw,64px)] max-w-[720px] text-center"
         >
-          Our Training Approach
-        </motion.h2>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12"
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="relative"
-            >
-              <img
-                src="/images/first-aid-cpr-training.jpg"
-                alt="Participant practising CPR during a first aid training session"
-                src="/images/first-aid-cpr-training.jpg"
-                alt="Participant practising CPR during a first aid training session"
-                className="rounded-2xl shadow-2xl w-full h-auto object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-green/30 to-transparent rounded-2xl"></div>
-            </motion.div>
-            <div>
-              <p className="text-gray-300 leading-relaxed mb-8">
-                We use a Learn — Practice — Perform methodology.
-              </p>
-
-              <div className="grid grid-cols-1 gap-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-green to-brand-red flex items-center justify-center shrink-0">
-                    <span className="text-lg font-bold text-white">1</span>
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-bold text-white mb-2">
-                      Understand the emergency
-                    </h4>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-green to-brand-red flex items-center justify-center shrink-0">
-                    <span className="text-lg font-bold text-white">2</span>
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-bold text-white mb-2">
-                      Practice the skill repeatedly
-                    </h4>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-green to-brand-red flex items-center justify-center shrink-0">
-                    <span className="text-lg font-bold text-white">3</span>
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-bold text-white mb-2">
-                      Perform in realistic scenarios
-                    </h4>
-                  </div>
-                </div>
-              </div>
-
-              <p className="text-gray-300 leading-relaxed mt-8">
-                People remember what they do, not what they hear. Our sessions
-                are interactive, practical, and confidence-building.
-              </p>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl"
-        >
-          <h3 className="text-2xl font-bold text-white mb-6">Who We Serve</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-brand-red shrink-0" />
-              <span className="text-gray-300">Corporate offices</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-brand-red shrink-0" />
-              <span className="text-gray-300">
-                Schools & training institutions
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-brand-red shrink-0" />
-              <span className="text-gray-300">
-                Construction & industrial sites
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-brand-red shrink-0" />
-              <span className="text-gray-300">Warehouses & logistics</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-brand-red shrink-0" />
-              <span className="text-gray-300">Retail & hospitality</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-brand-red shrink-0" />
-              <span className="text-gray-300">Security companies</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-brand-red shrink-0" />
-              <span className="text-gray-300">Community organisations</span>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  );
-};
-
-const ImpactAttribute = ({ icon: Icon, title, description }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, amount: 0.4 }}
-    className="text-center"
-  >
-    <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/20 bg-white/10">
-      <Icon className="h-8 w-8 text-brand-red" aria-hidden="true" />
-    </div>
-    <h3 className="text-xl font-bold text-white md:text-2xl">{title}</h3>
-    <p className="mx-auto mt-3 max-w-xs text-base leading-relaxed text-gray-300">
-      {description}
-    </p>
-  </motion.div>
-);
-const ImpactAttribute = ({ icon: Icon, title, description }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, amount: 0.4 }}
-    className="text-center"
-  >
-    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl border border-white/20 bg-white/10 shadow-lg">
-      <Icon className="h-10 w-10 text-brand-red" aria-hidden="true" />
-    </div>
-    <h3 className="text-xl font-bold text-white md:text-2xl">{title}</h3>
-    <p className="mx-auto mt-3 max-w-xs text-base leading-relaxed text-gray-300">
-      {description}
-    </p>
-  </motion.div>
-);
-
-const Impact = () => {
-  return (
-    <section className="bg-brand-green px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
-      <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mx-auto mb-10 max-w-3xl text-center sm:mb-14"
-        >
-          <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-brand-red">
-            Built for real response
-          </p>
-          <h2 className="text-4xl font-bold text-white md:text-5xl">
-            What Defines Our Training
+          <p className="eyebrow justify-center">What We Do</p>
+          <h2 className="text-[clamp(1.75rem,3.2vw,2.5rem)] font-extrabold tracking-tight">
+            Safety services built for real-world readiness
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-gray-300">
-            Practical methods, realistic scenarios, and training shaped around
-            the people who will use it.
+          <p className="mt-3 text-[1.06rem] text-muted">
+            Many workplaces meet safety requirements on paper but are not ready
+            for a real emergency. Our training and advisory services close that
+            gap.
           </p>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="rounded-3xl border border-white/20 bg-white/10 p-6 shadow-2xl backdrop-blur-xl sm:p-10 lg:p-12"
+        </motion.header>
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          {cards.map((card) => (
+            <motion.a
+              key={card.href}
+              {...fadeUp}
+              href={card.href}
+              className="group relative flex flex-col rounded-[22px] border border-line bg-white px-7 py-[30px] transition hover:-translate-y-1 hover:border-green-100 hover:shadow-brand"
+            >
+              <span className="absolute inset-x-7 top-[-1px] h-[3px] origin-center scale-x-0 rounded-b bg-red-600 transition group-hover:scale-x-100" />
+              <span className="mb-5 grid h-[52px] w-[52px] place-items-center rounded-[14px] bg-green-50 text-green-700">
+                <card.icon className="h-[26px] w-[26px]" />
+              </span>
+              <h3 className="text-[1.2rem] font-bold">{card.title}</h3>
+              <p className="mt-2 text-[0.96rem] text-muted">{card.text}</p>
+              <span className="mt-auto inline-flex items-center gap-1.5 pt-[18px] text-[0.92rem] font-semibold text-red-600">
+                Learn more
+                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-[3px]" />
+              </span>
+            </motion.a>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SplitService({
+  id,
+  eyebrow,
+  title,
+  lead,
+  image,
+  alt,
+  reverse = false,
+  altBg = false,
+  lists,
+  extra,
+}) {
+  return (
+    <section
+      id={id}
+      className={`py-[clamp(72px,10vw,120px)] ${altBg ? "bg-bg-alt" : ""}`}
+    >
+      <div
+        className={`mx-auto grid max-w-site items-center gap-[clamp(40px,6vw,80px)] px-[clamp(16px,4vw,32px)] max-[980px]:grid-cols-1 ${
+          reverse ? "lg:grid-cols-[1.15fr_1fr]" : "lg:grid-cols-[1fr_1.15fr]"
+        }`}
+      >
+        <motion.figure
+          {...fadeUp}
+          className={`relative max-h-[640px] overflow-hidden rounded-[22px] shadow-brand-lg max-[980px]:aspect-[16/10] max-[980px]:max-h-[460px] lg:aspect-[4/5] ${
+            reverse ? "lg:order-2" : ""
+          }`}
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
-            <ImpactAttribute
-              icon={Shield}
-              title="Practical Training"
-              description="Hands-on instruction designed for confident action in real emergencies."
-            />
-            <ImpactAttribute
-              icon={Target}
-              title="Scenario-Based Learning"
-              description="Repeated practice turns safety knowledge into usable response skills."
-            />
-            <ImpactAttribute
-              icon={Users}
-              title="Workplace & Community Focus"
-              description="Training shaped around the people, setting, and risks of each organisation."
-            />
-            <ImpactAttribute
-              icon={Shield}
-              title="Hands-On Skills"
-              description="Practical instruction that builds confidence through guided participation."
-            />
-            <ImpactAttribute
-              icon={Target}
-              title="Realistic Scenarios"
-              description="Training activities shaped around real workplace and community situations."
-            />
-            <ImpactAttribute
-              icon={Clock3}
-              title="24/7 Response Readiness"
-              description="Preparedness for emergencies that can happen at any hour."
-            />
+          <img
+            src={image}
+            alt={alt}
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+          <span className="absolute bottom-0 left-0 h-[5px] w-[38%] bg-red-600" />
+        </motion.figure>
+        <motion.div {...fadeUp}>
+          <p className="eyebrow">{eyebrow}</p>
+          <h2 className="mb-[0.6em] text-[clamp(1.75rem,3.2vw,2.5rem)] font-extrabold tracking-tight">
+            {title}
+          </h2>
+          <p className="text-[1.1rem] text-body">{lead}</p>
+          <div
+            className={`mt-8 grid gap-8 ${
+              lists.length > 1 ? "sm:grid-cols-2" : ""
+            }`}
+          >
+            {lists.map((list) => (
+              <div key={list.title}>
+                <h3 className="mb-3.5 font-sans text-[0.8rem] font-bold uppercase tracking-[0.12em] text-green-700">
+                  {list.title}
+                </h3>
+                <CheckList items={list.items} />
+              </div>
+            ))}
           </div>
+          {extra}
         </motion.div>
       </div>
     </section>
   );
-};
+}
 
-const About = ({ content }) => {
-const About = ({ content }) => {
+function EventSafety() {
+  const cards = [
+    {
+      icon: Heart,
+      title: "On-Site Event First Aid Cover",
+      text: "Trained responders equipped to handle everything from minor injuries to urgent emergencies.",
+      items: [
+        "Fainting and dehydration",
+        "Cuts and minor injuries",
+        "Allergic reactions",
+        "Breathing difficulties",
+        "Medical episodes",
+        "Stabilisation before ambulance arrival",
+      ],
+      note: (
+        <>
+          <strong className="text-white">Includes:</strong> pre-event risk
+          assessment, strategically positioned responders, communication
+          coordination and incident documentation.
+        </>
+      ),
+    },
+    {
+      icon: HandHeart,
+      title: "Elderly & Assisted Guest Support",
+      text: "Respectful, non-intrusive assistance for attendees who need extra care, supervision or mobility support, preserving comfort and dignity throughout.",
+      items: [
+        "Mobility assistance",
+        "Monitoring health conditions",
+        "Medication reminders (non-clinical)",
+        "Heat and fatigue monitoring",
+        "Calm reassurance in crowded situations",
+        "Escorting to rest or medical areas",
+      ],
+      note: (
+        <>
+          <strong className="text-white">Ideal for:</strong> family gatherings,
+          community events, conferences, religious gatherings and corporate
+          functions.
+        </>
+      ),
+    },
+    {
+      icon: Flame,
+      title: "Fire & Emergency Preparedness Presence",
+      text: "Where required, we support organisers with preventative safety oversight throughout the event.",
+      items: [
+        "Identifying hazards",
+        "Monitoring exits and crowd flow",
+        "Assisting with evacuation if necessary",
+        "Coordinating with emergency services",
+      ],
+    },
+  ];
+
   return (
     <section
-      id="about"
-      className="relative overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
+      id="events"
+      className="bg-green-800 py-[clamp(72px,10vw,120px)] text-white/80"
     >
-      {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-brand-red/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-blue/10 rounded-full blur-3xl"></div>
-
-      <div className="max-w-7xl mx-auto relative z-10">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
+      <div className="mx-auto max-w-site px-[clamp(16px,4vw,32px)]">
+        <motion.header
+          {...fadeUp}
+          className="mx-auto mb-[clamp(40px,6vw,64px)] max-w-[860px] text-center"
         >
-          {content.heading}
-        </motion.h2>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12"
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <div>
-              <h3 className="text-2xl font-bold text-white mb-6">{content.story_title}</h3>
-              <p className="text-gray-300 leading-relaxed mb-4">
-                {content.story_paragraph_1}
-              </p>
-              <p className="text-gray-300 leading-relaxed mb-4">
-                {content.story_paragraph_2}
-              </p>
-              <p className="text-gray-300 leading-relaxed">
-                {content.story_paragraph_3}
-              </p>
-              <p className="text-brand-red font-semibold mt-4 italic">
-                {content.statement}
-              </p>
-            </div>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="relative"
+          <p className="eyebrow-light justify-center">Service 04</p>
+          <h2 className="text-[clamp(1.75rem,3.2vw,2.5rem)] font-extrabold tracking-tight text-white">
+            Event Safety & Care Support
+          </h2>
+          <p className="mt-3 text-[1.06rem] text-white/80">
+            Professional protection for gatherings of any size. Crowds,
+            unfamiliar venues, medical conditions and unexpected incidents all
+            call for a calm, qualified response.
+          </p>
+          <p className="mt-4 text-[1.06rem] text-white/80">
+            We provide trained safety personnel to manage medical situations,
+            assist vulnerable guests and support organisers in keeping the event
+            safe. You focus on your event; we focus on safety.
+          </p>
+        </motion.header>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {cards.map((card) => (
+            <motion.article
+              key={card.title}
+              {...fadeUp}
+              className="flex flex-col rounded-[22px] border border-white/12 bg-white/5 px-7 py-[30px]"
             >
-              <img
-                src="/images/siig-team-photo.png"
-                alt="SIIG representatives at a community safety event"
-                className="aspect-[4/3] w-full rounded-2xl object-cover object-center shadow-2xl"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-green/30 to-transparent rounded-2xl"></div>
-            </motion.div>
-          </div>
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
-          >
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-brand-green/30 rounded-xl">
-                <Target className="w-8 h-8 text-brand-red" />
+              <span className="mb-5 grid h-[52px] w-[52px] place-items-center rounded-[14px] bg-white/10 text-[#f5c6cd]">
+                <card.icon className="h-[26px] w-[26px]" />
+              </span>
+              <h3 className="text-[1.2rem] font-bold text-white">
+                {card.title}
+              </h3>
+              <p className="mt-2 text-[0.96rem] text-white/75">{card.text}</p>
+              <div className="mt-4 mb-[22px]">
+                <CheckList items={card.items} light />
               </div>
-              <h3 className="text-2xl font-bold text-white">Our Mission</h3>
-            </div>
-            <p className="text-gray-300 leading-relaxed">
-              To deliver practical, engaging, and compliant safety training that
-              empowers people, reduces risk, prevents injuries, and ultimately
+              {card.note && (
+                <p className="mt-auto border-t border-white/12 pt-5 text-[0.9rem] text-white/75">
+                  {card.note}
+                </p>
+              )}
+            </motion.article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TrainingApproach() {
+  return (
+    <section id="training" className="py-[clamp(72px,10vw,120px)]">
+      <div className="mx-auto max-w-site px-[clamp(16px,4vw,32px)]">
+        <motion.header
+          {...fadeUp}
+          className="mx-auto mb-[clamp(40px,6vw,64px)] max-w-[720px] text-center"
+        >
+          <p className="eyebrow justify-center">Our Training Approach</p>
+          <h2 className="text-[clamp(1.75rem,3.2vw,2.5rem)] font-extrabold tracking-tight">
+            Learn. Practise. Perform.
+          </h2>
+          <p className="mt-3 text-[1.06rem] text-muted">
+            People remember what they do, not what they hear. Our sessions are
+            interactive, practical and designed to build confidence.
+          </p>
+        </motion.header>
+        <ol className="mb-[clamp(48px,7vw,80px)] grid gap-6 md:grid-cols-3 md:gap-7">
+          {[
+            {
+              num: "01",
+              title: "Learn",
+              text: "Understand the emergency: what is happening, the risks involved and the right priorities.",
+            },
+            {
+              num: "02",
+              title: "Practise",
+              text: "Practise each skill repeatedly under guidance until it becomes instinct.",
+            },
+            {
+              num: "03",
+              title: "Perform",
+              text: "Perform in realistic scenarios modelled on the environments where it will count.",
+            },
+          ].map((step, index) => (
+            <motion.li
+              key={step.num}
+              {...fadeUp}
+              className="relative rounded-[22px] border border-line bg-bg-alt px-7 py-8"
+            >
+              {index < 2 && (
+                <span className="absolute right-[-18px] top-1/2 z-[1] hidden h-3 w-3 -translate-y-1/2 rotate-45 border-r-2 border-t-2 border-red-600 md:block" />
+              )}
+              <span className="mb-3.5 block font-display text-[2.6rem] font-extrabold leading-none text-red-600">
+                {step.num}
+              </span>
+              <h3 className="text-[1.35rem] font-bold">{step.title}</h3>
+              <p className="mt-2 text-muted">{step.text}</p>
+            </motion.li>
+          ))}
+        </ol>
+        <div className="grid gap-8 lg:grid-cols-[1.3fr_1fr]">
+          <motion.div
+            {...fadeUp}
+            className="rounded-[22px] bg-green-800 p-9 text-white/80 max-sm:px-[22px]"
+          >
+            <h3 className="mb-7 text-[1.3rem] font-bold text-white">
+              What defines our training
+            </h3>
+            <ul className="grid gap-[22px]">
+              {[
+                {
+                  icon: HandHeart,
+                  title: "Hands-on skills",
+                  text: "Practical instruction that builds confidence through guided participation.",
+                },
+                {
+                  icon: Target,
+                  title: "Realistic scenarios",
+                  text: "Activities shaped around real workplace and community situations.",
+                },
+                {
+                  icon: Clock3,
+                  title: "24/7 response readiness",
+                  text: "Preparedness for emergencies that can happen at any hour.",
+                },
+              ].map((item) => (
+                <li key={item.title} className="flex gap-4">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white/10 text-[#f5c6cd]">
+                    <item.icon className="h-[22px] w-[22px]" />
+                  </span>
+                  <div>
+                    <strong className="mb-0.5 block font-display text-[1.05rem] text-white">
+                      {item.title}
+                    </strong>
+                    <p className="text-[0.95rem]">{item.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+          <motion.div
+            {...fadeUp}
+            className="rounded-[22px] border border-line p-9 max-sm:px-[22px]"
+          >
+            <h3 className="mb-4 text-[1.3rem] font-bold">Who we serve</h3>
+            <ul>
+              {[
+                { icon: Building2, label: "Corporate offices" },
+                {
+                  icon: GraduationCap,
+                  label: "Schools & training institutions",
+                },
+                { icon: HardHat, label: "Construction & industrial sites" },
+                { icon: Lock, label: "Security companies" },
+                { icon: Home, label: "Community organisations" },
+              ].map((item, index) => (
+                <li
+                  key={item.label}
+                  className={`flex items-center gap-3.5 py-3 font-medium text-ink ${
+                    index > 0 ? "border-t border-line" : ""
+                  }`}
+                >
+                  <item.icon className="h-[22px] w-[22px] text-red-600" />
+                  {item.label}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function About({ content }) {
+  return (
+    <section id="about" className="bg-bg-alt py-[clamp(72px,10vw,120px)]">
+      <div className="mx-auto max-w-site px-[clamp(16px,4vw,32px)]">
+        <div className="grid items-start gap-[clamp(40px,6vw,80px)] lg:grid-cols-[1fr_1.15fr]">
+          <motion.div {...fadeUp}>
+            <p className="eyebrow">{content.story_title || "About Us"}</p>
+            <h2 className="mb-6 text-[clamp(1.75rem,3.2vw,2.5rem)] font-extrabold tracking-tight">
+              {content.heading}
+            </h2>
+            <p className="mb-4">{content.story_paragraph_1}</p>
+            <p className="mb-4">{content.story_paragraph_2}</p>
+            <p className="mb-4">{content.story_paragraph_3}</p>
+            <blockquote className="mt-7 border-l-4 border-red-600 py-[18px] pl-6 font-display text-[1.3rem] font-bold leading-snug text-green-800">
+              {content.statement}
+            </blockquote>
+          </motion.div>
+          <motion.figure {...fadeUp} className="lg:sticky lg:top-[100px]">
+            <img
+              src="/images/siig-team-photo.png"
+              alt="SIIG representatives at a community safety event stand"
+              className="aspect-[239/282] w-full rounded-[22px] bg-green-50 object-cover shadow-brand-lg"
+              loading="lazy"
+            />
+            <figcaption className="mt-3 text-[0.86rem] text-muted">
+              SIIG representatives at a community safety outreach event.
+            </figcaption>
+          </motion.figure>
+        </div>
+        <div className="mt-[clamp(56px,8vw,88px)] grid gap-6 md:grid-cols-2">
+          <motion.article
+            {...fadeUp}
+            className="rounded-[22px] border border-line bg-white p-[34px]"
+          >
+            <span className="mb-5 grid h-[52px] w-[52px] place-items-center rounded-[14px] bg-green-50 text-green-700">
+              <Target className="h-[26px] w-[26px]" />
+            </span>
+            <h3 className="text-[1.2rem] font-bold">Our Mission</h3>
+            <p className="mt-2 text-[1.02rem] text-muted">
+              To deliver practical, engaging and compliant safety training that
+              empowers people, reduces risk, prevents injuries and ultimately
               saves lives.
             </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
+          </motion.article>
+          <motion.article
+            {...fadeUp}
+            className="rounded-[22px] border border-line bg-white p-[34px]"
           >
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-brand-green/30 rounded-xl">
-                <Award className="w-8 h-8 text-brand-red" />
-              </div>
-              <h3 className="text-2xl font-bold text-white">Our Vision</h3>
-            </div>
-            <p className="text-gray-300 leading-relaxed">
-              To build safer communities and workplaces where every individual
-              is confident, capable, and prepared to respond effectively in an
+            <span className="mb-5 grid h-[52px] w-[52px] place-items-center rounded-[14px] bg-green-50 text-green-700">
+              <Shield className="h-[26px] w-[26px]" />
+            </span>
+            <h3 className="text-[1.2rem] font-bold">Our Vision</h3>
+            <p className="mt-2 text-[1.02rem] text-muted">
+              Safer communities and workplaces where every individual is
+              confident, capable and prepared to respond effectively in an
               emergency.
             </p>
-          </motion.div>
+          </motion.article>
         </div>
-
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl"
+          {...fadeUp}
+          className="mt-6 rounded-[22px] bg-green-800 px-9 py-9 max-sm:px-5"
         >
-          <h3 className="text-2xl font-bold text-white mb-6">
-            Our Values (CAPE)
+          <h3 className="mb-7 text-center text-[1.3rem] font-bold text-white">
+            Our values{" "}
+            <span className="font-semibold text-[#f5c6cd]">(PIIPE)</span>
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-brand-green/30 rounded-lg shrink-0">
-                <Shield className="w-6 h-6 text-brand-red" />
-              </div>
-              <div>
-                <h4 className="text-lg font-bold text-white mb-2">
-                  Preparedness
-                </h4>
-                <p className="text-gray-400 text-sm">
-                  Training must translate into action.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-brand-green/30 rounded-lg shrink-0">
-                <Shield className="w-6 h-6 text-brand-red" />
-              </div>
-              <div>
-                <h4 className="text-lg font-bold text-white mb-2">Integrity</h4>
-                <p className="text-gray-400 text-sm">
-                  Compliance delivered honestly and correctly.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-brand-green/30 rounded-lg shrink-0">
-                <Shield className="w-6 h-6 text-brand-red" />
-              </div>
-              <div>
-                <h4 className="text-lg font-bold text-white mb-2">Impact</h4>
-                <p className="text-gray-400 text-sm">
-                  Every person trained increases community safety.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-brand-green/30 rounded-lg shrink-0">
-                <Shield className="w-6 h-6 text-brand-red" />
-              </div>
-              <div>
-                <h4 className="text-lg font-bold text-white mb-2">
-                  Practicality
-                </h4>
-                <p className="text-gray-400 text-sm">
-                  Skills must work in real situations.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4 md:col-span-2">
-              <div className="p-2 bg-brand-green/30 rounded-lg shrink-0">
-                <Shield className="w-6 h-6 text-brand-red" />
-              </div>
-              <div>
-                <h4 className="text-lg font-bold text-white mb-2">
-                  Empowerment
-                </h4>
-                <p className="text-gray-400 text-sm">
-                  Confidence is as important as knowledge.
-                </p>
-              </div>
-            </div>
-          </div>
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {[
+              {
+                letter: "P",
+                title: "Preparedness",
+                text: "Training must translate into action.",
+              },
+              {
+                letter: "I",
+                title: "Integrity",
+                text: "Compliance delivered honestly and correctly.",
+              },
+              {
+                letter: "I",
+                title: "Impact",
+                text: "Every person trained increases community safety.",
+              },
+              {
+                letter: "P",
+                title: "Practicality",
+                text: "Skills must work in real situations.",
+              },
+              {
+                letter: "E",
+                title: "Empowerment",
+                text: "Confidence is as important as knowledge.",
+              },
+            ].map((value) => (
+              <li
+                key={value.title}
+                className="rounded-[14px] border border-white/10 bg-white/5 px-[18px] py-[22px] text-center"
+              >
+                <span className="mx-auto mb-3.5 grid h-12 w-12 place-items-center rounded-full bg-red-600 font-display text-[1.3rem] font-extrabold text-white">
+                  {value.letter}
+                </span>
+                <strong className="mb-1.5 block font-display text-white">
+                  {value.title}
+                </strong>
+                <p className="m-0 text-[0.9rem] text-white/70">{value.text}</p>
+              </li>
+            ))}
+          </ul>
         </motion.div>
       </div>
     </section>
   );
-};
+}
 
-const CommunityInitiative = () => {
+function CommunityInitiative() {
   return (
-    <section
-      id="community"
-      className="relative overflow-hidden bg-gradient-to-br from-brand-green via-brand-green/95 to-brand-green/90 px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
-    >
-      {/* Decorative background elements */}
-      <div className="absolute top-0 left-1/2 w-96 h-96 bg-brand-red/10 rounded-full blur-3xl animate-pulse"></div>
-      <div
-        className="absolute bottom-0 right-1/4 w-64 h-64 bg-brand-blue/10 rounded-full blur-3xl animate-pulse"
-        style={{ animationDelay: "-3s" }}
-      ></div>
-
-      <div className="max-w-7xl mx-auto relative z-10">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
+    <section id="community" className="py-[clamp(72px,10vw,120px)]">
+      <div className="mx-auto max-w-site px-[clamp(16px,4vw,32px)]">
+        <motion.header
+          {...fadeUp}
+          className="mx-auto mb-[clamp(40px,6vw,64px)] max-w-[860px] text-center"
         >
-          Community Medical Support Initiative
-        </motion.h2>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl mb-12"
-        >
-          <h3 className="text-2xl font-bold text-white mb-6">
-            Supporting Health Through Essential Equipment Donations
-          </h3>
-          <p className="text-gray-300 leading-relaxed mb-6">
-            At Safety Innovations Impact Group, we recognise that access to
-            basic medical supplies and emergency equipment can make the
-            difference between life and loss. Many community institutions
-            operate with limited resources, leaving them vulnerable during
+          <p className="eyebrow justify-center">
+            Community Medical Support Initiative
+          </p>
+          <h2 className="text-[clamp(1.75rem,3.2vw,2.5rem)] font-extrabold tracking-tight">
+            Supporting health through essential equipment donations
+          </h2>
+          <p className="mt-3 text-[1.06rem] text-muted">
+            Access to basic medical supplies and emergency equipment can make
+            the difference between life and loss. Many community institutions
+            operate with limited resources, which leaves them exposed during
             medical or fire emergencies.
           </p>
-          <p className="text-gray-300 leading-relaxed mb-6">
-            As part of our social commitment, we conduct targeted donation
-            initiatives aimed at improving immediate response capability in
-            underserved environments. Our goal is simple: no emergency response
-            should fail because the right equipment was unavailable.
+          <p className="mt-4 text-[1.06rem] text-muted">
+            As part of our social commitment, we run targeted donation
+            initiatives to improve immediate response capability in underserved
+            environments. No emergency response should fail because the right
+            equipment was unavailable.
           </p>
-          <p className="text-brand-red font-semibold italic">
-            Preparedness should not depend on resources — it should be available
-            to everyone.
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
+        </motion.header>
+        <motion.blockquote
+          {...fadeUp}
+          className="mx-auto mb-[clamp(40px,6vw,56px)] max-w-[860px] rounded-[22px] bg-red-50 px-8 py-[26px] text-center font-display text-[clamp(1.1rem,2vw,1.35rem)] font-bold leading-snug text-red-700"
+        >
+          Preparedness should not depend on resources. It should be available to
+          everyone.
+        </motion.blockquote>
+        <div className="grid gap-6 md:grid-cols-2">
+          <motion.article
+            {...fadeUp}
+            className="rounded-[22px] border border-line bg-white px-7 py-[30px]"
           >
-            <h3 className="text-2xl font-bold text-white mb-6">
-              What We Provide
+            <span className="mb-5 grid h-[52px] w-[52px] place-items-center rounded-[14px] bg-green-50 text-green-700">
+              <Heart className="h-[26px] w-[26px]" />
+            </span>
+            <h3 className="mb-4 text-[1.2rem] font-bold">Medical supplies</h3>
+            <CheckList
+              items={[
+                "First aid kits",
+                "Wound care materials",
+                "Gloves and protective barriers",
+                "CPR face shields",
+                "Basic trauma supplies",
+              ]}
+            />
+          </motion.article>
+          <motion.article
+            {...fadeUp}
+            className="rounded-[22px] border border-line bg-white px-7 py-[30px]"
+          >
+            <span className="mb-5 grid h-[52px] w-[52px] place-items-center rounded-[14px] bg-green-50 text-green-700">
+              <Package className="h-[26px] w-[26px]" />
+            </span>
+            <h3 className="mb-4 text-[1.2rem] font-bold">
+              Emergency equipment
             </h3>
-            <p className="text-gray-300 leading-relaxed mb-6">
-              We donate essential emergency response materials to selected
-              community institutions and organisations.
+            <CheckList
+              items={[
+                "Fire extinguishers",
+                "Emergency signage",
+                "Basic evacuation equipment",
+                "Safety instruction posters",
+              ]}
+            />
+          </motion.article>
+        </div>
+        <div className="mt-[clamp(48px,7vw,72px)] grid gap-12 md:grid-cols-2">
+          <motion.div {...fadeUp}>
+            <h3 className="mb-4 text-[1.3rem] font-bold">Where we focus</h3>
+            <p className="text-muted">
+              We prioritise environments where immediate assistance is critical
+              but resources are often limited:
             </p>
-
-            <div className="mb-6">
-              <h4 className="text-lg font-bold text-white mb-4">
-                Medical Supplies
-              </h4>
-              <ul className="space-y-2 text-gray-400">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  First aid kits
+            <ul className="mt-3.5 flex flex-wrap gap-2">
+              {[
+                "Schools & early learning centres",
+                "Community centres",
+                "Non-profit organisations",
+                "Small community workplaces",
+                "Public gathering facilities",
+              ].map((tag) => (
+                <li
+                  key={tag}
+                  className="rounded-full border border-green-100 bg-green-50 px-3.5 py-1.5 text-[0.88rem] font-medium text-green-800"
+                >
+                  {tag}
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Wound care materials
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Gloves and protective barriers
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  CPR face shields
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Basic trauma supplies
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-lg font-bold text-white mb-4">
-                Emergency Equipment
-              </h4>
-              <ul className="space-y-2 text-gray-400">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Fire extinguishers
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Emergency signage
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Basic evacuation equipment
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                  Safety instruction posters
-                </li>
-              </ul>
-            </div>
+              ))}
+            </ul>
           </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
-          >
-            <h3 className="text-2xl font-bold text-white mb-6">
-              Where We Focus
+          <motion.div {...fadeUp}>
+            <h3 className="mb-4 text-[1.3rem] font-bold">
+              Purpose of the initiative
             </h3>
-            <p className="text-gray-300 leading-relaxed mb-6">
-              Our donation efforts prioritise environments where immediate
-              assistance is most critical but resources are often limited:
+            <p className="mb-4 text-muted">
+              The aim is not only to provide items but to improve emergency
+              readiness. Each donation is meant to:
             </p>
-            <ul className="space-y-3 text-gray-400 mb-8">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                Schools and early learning centres
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                Community centres
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                Non-profit organisations
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                Small community workplaces
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                Public gathering facilities
-              </li>
-            </ul>
-
-            <h3 className="text-2xl font-bold text-white mb-6">
-              Purpose of the Initiative
-            </h3>
-            <p className="text-gray-300 leading-relaxed mb-4">
-              The objective of this program is not only to provide items, but to
-              improve emergency readiness. Each donation aims to:
-            </p>
-            <ul className="space-y-2 text-gray-400">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                Increase response capability
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                Reduce preventable injuries
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                Support safer environments
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-brand-red shrink-0" />
-                Strengthen community resilience
-              </li>
-            </ul>
+            <CheckList
+              columns
+              items={[
+                "Increase response capability",
+                "Reduce preventable injuries",
+                "Support safer environments",
+                "Strengthen community resilience",
+              ]}
+            />
           </motion.div>
         </div>
-
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 md:p-12 rounded-3xl shadow-xl"
+          {...fadeUp}
+          className="mt-[clamp(48px,7vw,72px)] flex items-center justify-between gap-8 rounded-[22px] border border-line bg-bg-alt px-10 py-9 max-md:flex-col max-md:items-start max-md:px-6"
         >
-          <h3 className="text-2xl font-bold text-white mb-6">Our Commitment</h3>
-          <p className="text-gray-300 leading-relaxed mb-6">
-            Safety Innovations Impact Group is committed to making safety
-            accessible beyond commercial services. By equipping organisations
-            with essential emergency tools, we help communities become better
-            prepared for unexpected situations.
-          </p>
-          <p className="text-gray-300 leading-relaxed mb-6">
-            Preparedness should not depend on resources — it should be available
-            to everyone.
-          </p>
-          <h3 className="text-2xl font-bold text-white mb-6">
-            Partnership Opportunities
-          </h3>
-          <p className="text-gray-300 leading-relaxed">
-            We welcome collaboration with organisations, sponsors, and
-            stakeholders who share our goal of expanding safety readiness within
-            communities. Together, we can extend protection where it is needed
-            most.
-          </p>
+          <div>
+            <h3 className="text-[1.4rem] font-bold">Partner with us</h3>
+            <p className="mt-2 max-w-[680px] text-muted">
+              We are committed to making safety accessible beyond our commercial
+              services. We welcome organisations, sponsors and stakeholders who
+              want to extend safety readiness in their communities.
+            </p>
+          </div>
+          <a href="#contact" className="btn-primary shrink-0">
+            Discuss a Partnership
+            <ArrowRight className="h-4 w-4" />
+          </a>
         </motion.div>
       </div>
     </section>
   );
-};
+}
 
-const Contact = ({ content }) => {
-const Contact = ({ content }) => {
+function Team({ members }) {
+  if (!members.length) return null;
+
+  return (
+    <section id="team" className="bg-bg-alt py-[clamp(72px,10vw,120px)]">
+      <div className="mx-auto max-w-site px-[clamp(16px,4vw,32px)]">
+        <motion.header
+          {...fadeUp}
+          className="mx-auto mb-[clamp(40px,6vw,64px)] max-w-[720px] text-center"
+        >
+          <p className="eyebrow justify-center">Our Team</p>
+          <h2 className="text-[clamp(1.75rem,3.2vw,2.5rem)] font-extrabold tracking-tight">
+            The people behind SIIG
+          </h2>
+        </motion.header>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-6">
+          {members.map((member) => {
+            const name = member.full_name || member.name;
+            const role = member.position || member.role;
+            const bio = member.biography || member.description;
+            const initials = name
+              ?.split(/\s+/)
+              .slice(0, 2)
+              .map((part) => part[0])
+              .join("");
+            return (
+              <motion.article
+                key={member.id}
+                {...fadeUp}
+                className="overflow-hidden rounded-[22px] border border-line bg-white"
+              >
+                <div className="grid aspect-square place-items-center bg-green-50 font-display text-[2.4rem] font-extrabold text-green-700">
+                  {member.image_url ? (
+                    <img
+                      src={member.image_url}
+                      alt={member.image_alt || `${name}, ${role}`}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    initials
+                  )}
+                </div>
+                <div className="px-[22px] pb-6 pt-5">
+                  <h3 className="mb-0.5 text-[1.2rem] font-bold">{name}</h3>
+                  <p className="mb-2.5 text-[0.9rem] font-semibold text-red-600">
+                    {role}
+                  </p>
+                  {bio && <p className="text-[0.92rem] text-muted">{bio}</p>}
+                </div>
+              </motion.article>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CallToAction({ content }) {
+  return (
+    <section className="relative overflow-hidden bg-[linear-gradient(120deg,#8f1a2b,#a51f33_55%,#b8283d)] py-[clamp(56px,8vw,88px)] text-white">
+      <span className="pointer-events-none absolute -right-[120px] -top-[120px] h-[420px] w-[420px] rounded-full border-[60px] border-white/5" />
+      <div className="relative mx-auto flex max-w-site items-center justify-between gap-10 px-[clamp(16px,4vw,32px)] max-[980px]:flex-col max-[980px]:items-start">
+        <div>
+          <p className="eyebrow mb-4 text-white/80 before:bg-white/80">
+            {content.eyebrow}
+          </p>
+          <h2 className="m-0 max-w-[760px] text-[clamp(1.75rem,3.2vw,2.5rem)] font-extrabold tracking-tight text-white">
+            {content.title}
+          </h2>
+        </div>
+        <a href="#contact" className="btn-light shrink-0">
+          {content.button}
+          <ArrowRight className="h-4 w-4" />
+        </a>
+      </div>
+    </section>
+  );
+}
+
+function Contact({ content }) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     company: "",
+    service: INTEREST_OPTIONS[0],
     message: "",
   });
   const [submitState, setSubmitState] = useState({
@@ -1363,11 +1020,22 @@ const Contact = ({ content }) => {
     error: false,
   });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleChange = (event) => {
+    setFormData({ ...formData, [event.target.name]: event.target.value });
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const payloadMessage = `[${formData.service}]\n\n${formData.message}`;
     if (isSupabaseConfigured) {
       setSubmitState({ loading: true, message: "", error: false });
-      const { error } = await supabase.from("enquiries").insert(formData);
+      const { error } = await supabase.from("enquiries").insert({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        company: formData.company,
+        message: payloadMessage,
+      });
       if (!error) {
         setSubmitState({
           loading: false,
@@ -1379,6 +1047,7 @@ const Contact = ({ content }) => {
           email: "",
           phone: "",
           company: "",
+          service: INTEREST_OPTIONS[0],
           message: "",
         });
       } else {
@@ -1389,466 +1058,448 @@ const Contact = ({ content }) => {
         });
       }
     } else {
-      // Fallback to mailto if Supabase not configured
-      const mailtoLink = `mailto:${content.email}?subject=Enquiry from ${encodeURIComponent(
-      const mailtoLink = `mailto:${
-        content.email
-      }?subject=Enquiry from ${encodeURIComponent(
-        formData.name
+      const mailtoLink = `mailto:${content.email}?subject=${encodeURIComponent(
+        `${formData.service} from ${formData.name}`
       )}&body=${encodeURIComponent(
-        `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nCompany: ${formData.company}\n\nMessage:\n${formData.message}`
+        `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nOrganisation: ${formData.company}\nInterest: ${formData.service}\n\nMessage:\n${formData.message}`
       )}`;
       window.location.href = mailtoLink;
     }
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const fieldClass =
+    "w-full rounded-[10px] border-[1.5px] border-line bg-white px-3.5 py-3 text-[0.96rem] text-ink outline-none transition placeholder:text-[#9aa8a1] focus:border-green-600 focus:shadow-[0_0_0_4px_rgba(27,106,82,0.14)]";
 
   return (
-    <section
-      id="contact"
-      className="bg-brand-green px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
-    >
-      <div className="max-w-7xl mx-auto">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
-        >
-          {content.heading}
-        </motion.h2>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
-          >
-            <h3 className="text-2xl font-bold text-white mb-6">Get in Touch</h3>
-            <p className="text-gray-300 leading-relaxed mb-8">
-              {content.intro}
-            </p>
-
-            <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-brand-green/30 rounded-xl">
-                  <Phone className="w-6 h-6 text-brand-red" />
-                </div>
-                <div>
-                  <p className="text-gray-400 text-sm">Phone</p>
-                  <a href={`tel:${content.phone_link}`} className="text-white font-semibold hover:underline">{content.phone}</a>
-                  <a
-                    href={`tel:${content.phone_link}`}
-                    className="text-white font-semibold hover:underline"
-                  >
-                    {content.phone}
-                  </a>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-brand-green/30 rounded-xl">
-                  <Mail className="w-6 h-6 text-brand-red" />
-                </div>
-                <div>
-                  <p className="text-gray-400 text-sm">Email</p>
-                  <a href={`mailto:${content.email}`} className="text-white font-semibold hover:underline">{content.email}</a>
-                  <a
-                    href={`mailto:${content.email}`}
-                    className="text-white font-semibold hover:underline"
-                  >
-                    {content.email}
-                  </a>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-brand-green/30 rounded-xl">
-                  <MapPin className="w-6 h-6 text-brand-red" />
-                </div>
-                <div>
-                  <p className="text-gray-400 text-sm">Location</p>
-                  <p className="text-white font-semibold">Accra, Ghana</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-brand-green/30 rounded-xl">
-                  <Users className="w-6 h-6 text-brand-red" />
-                </div>
-                <div>
-                  <p className="text-gray-400 text-sm">Instagram</p>
-                  <a href={content.instagram_url} target="_blank" rel="noreferrer" className="text-white font-semibold hover:underline">{content.instagram}</a>
-                  <a
-                    href={content.instagram_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-white font-semibold hover:underline"
-                  >
-                    {content.instagram}
-                  </a>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-xl"
-          >
-            <h3 className="text-2xl font-bold text-white mb-6">
-              Send us a Message
-            </h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-gray-300 text-sm mb-2">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-brand-green transition"
-                  placeholder="Your name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-300 text-sm mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-brand-green transition"
-                  placeholder="your@email.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-300 text-sm mb-2">
-                  Phone
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-brand-green transition"
-                  placeholder="+233 XX XXX XXXX"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-300 text-sm mb-2">
-                  Company
-                </label>
-                <input
-                  type="text"
-                  name="company"
-                  value={formData.company}
-                  onChange={handleChange}
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-brand-green transition"
-                  placeholder="Your company name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-300 text-sm mb-2">
-                  Message
-                </label>
-                <textarea
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  rows="4"
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-brand-green transition resize-none"
-                  placeholder="How can we help you?"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={submitState.loading}
-                className="w-full bg-brand-green hover:bg-brand-green/80 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg shadow-brand-green/20 flex items-center justify-center gap-2 disabled:opacity-60"
+    <section id="contact" className="py-[clamp(72px,10vw,120px)]">
+      <div className="mx-auto grid max-w-site items-start gap-[clamp(40px,6vw,80px)] px-[clamp(16px,4vw,32px)] lg:grid-cols-[1fr_1.15fr]">
+        <motion.div {...fadeUp}>
+          <p className="eyebrow">Contact Us</p>
+          <h2 className="text-[clamp(1.75rem,3.2vw,2.5rem)] font-extrabold tracking-tight">
+            {content.heading}
+          </h2>
+          <p className="mt-3 text-[1.05rem] text-muted">{content.intro}</p>
+          <ul className="mt-8 grid gap-3.5">
+            {[
+              {
+                icon: Phone,
+                label: "Phone",
+                href: `tel:${content.phone_link}`,
+                value: content.phone,
+              },
+              {
+                icon: Mail,
+                label: "Email",
+                href: `mailto:${content.email}`,
+                value: content.email,
+              },
+              {
+                icon: Instagram,
+                label: "Instagram",
+                href: content.instagram_url,
+                value: content.instagram,
+                external: true,
+              },
+            ].map((item) => (
+              <li
+                key={item.label}
+                className="flex items-center gap-4 rounded-[14px] border border-line px-5 py-[18px] transition hover:border-green-100 hover:shadow-sm"
               >
-                {submitState.loading ? "Sending..." : "Send Message"}
-                <Send className="w-5 h-5" />
-              </button>
-              {submitState.message && (
-                <p
-                  className={`text-center text-sm ${
-                    submitState.error ? "text-red-400" : "text-green-400"
-                  }`}
-                >
-                  {submitState.message}
-                </p>
-              )}
-            </form>
-          </motion.div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const Team = ({ members }) => {
-const Team = ({ members }) => {
-  const placeholders = Array.from({ length: 4 }, (_, index) => ({
-    id: `placeholder-${index}`,
-  }));
-
-  return (
-    <section
-      id="team"
-      className="bg-brand-green px-4 py-16 sm:px-6 sm:py-20 lg:py-24"
-    >
-      <div className="max-w-7xl mx-auto">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-green-50 text-green-700">
+                  <item.icon className="h-5 w-5" />
+                </span>
+                <div>
+                  <span className="block text-[0.78rem] font-semibold uppercase tracking-[0.08em] text-muted">
+                    {item.label}
+                  </span>
+                  <a
+                    href={item.href}
+                    target={item.external ? "_blank" : undefined}
+                    rel={item.external ? "noopener noreferrer" : undefined}
+                    className="break-words font-semibold text-ink hover:text-red-600"
+                  >
+                    {item.value}
+                  </a>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </motion.div>
+        <motion.form
+          {...fadeUp}
+          onSubmit={handleSubmit}
+          className="rounded-[22px] border border-line bg-bg-alt p-[clamp(24px,4vw,40px)]"
         >
-          Our Team
-        </motion.h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {members.map((member, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
-              className="backdrop-blur-xl bg-white/10 border border-white/20 p-6 rounded-3xl shadow-xl group hover:border-brand-green/50 transition-all duration-300 text-center"
+          <h3 className="mb-5 text-[1.4rem] font-bold">Send us a message</h3>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="mb-[18px] block text-[0.88rem] font-semibold text-ink">
+              Full name <span className="text-red-600">*</span>
+              <input
+                className={`${fieldClass} mt-1.5`}
+                type="text"
+                name="name"
+                autoComplete="name"
+                placeholder="Your name"
+                required
+                value={formData.name}
+                onChange={handleChange}
+              />
+            </label>
+            <label className="mb-[18px] block text-[0.88rem] font-semibold text-ink">
+              Email <span className="text-red-600">*</span>
+              <input
+                className={`${fieldClass} mt-1.5`}
+                type="email"
+                name="email"
+                autoComplete="email"
+                placeholder="you@company.com"
+                required
+                value={formData.email}
+                onChange={handleChange}
+              />
+            </label>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="mb-[18px] block text-[0.88rem] font-semibold text-ink">
+              Phone
+              <input
+                className={`${fieldClass} mt-1.5`}
+                type="tel"
+                name="phone"
+                autoComplete="tel"
+                placeholder="+233 XX XXX XXXX"
+                value={formData.phone}
+                onChange={handleChange}
+              />
+            </label>
+            <label className="mb-[18px] block text-[0.88rem] font-semibold text-ink">
+              Organisation
+              <input
+                className={`${fieldClass} mt-1.5`}
+                type="text"
+                name="company"
+                autoComplete="organization"
+                placeholder="Company or organisation"
+                value={formData.company}
+                onChange={handleChange}
+              />
+            </label>
+          </div>
+          <label className="mb-[18px] block text-[0.88rem] font-semibold text-ink">
+            I'm interested in
+            <select
+              className={`${fieldClass} mt-1.5`}
+              name="service"
+              value={formData.service}
+              onChange={handleChange}
             >
-              <div className="w-28 h-28 mx-auto mb-5 overflow-hidden rounded-full bg-gradient-to-br from-brand-green to-brand-red flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                {member.image_url ? (
-                  <img src={member.image_url} alt={member.image_alt || `${member.full_name}, ${member.position}`} className="h-full w-full object-cover" loading="lazy" />
-                ) : (
-                  <span className="text-3xl font-black text-white">{member.full_name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span>
-                )}
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">
-                {member.full_name}
-              </h3>
-              <p className="text-brand-red font-semibold mb-3">{member.position}</p>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                {member.biography}
-              </p>
-            </motion.div>
-          ))}
-          {!members.length && (
-            <div className="md:col-span-2 lg:col-span-4 border border-white/20 bg-white/10 p-8 text-center text-gray-300 rounded-3xl">
-              Team profiles will be introduced here.
-            </div>
-          )}
-          {members.length > 0
-            ? members.map((member, index) => (
-                <motion.div
-                  key={member.id || index}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1, duration: 0.5 }}
-                  className="backdrop-blur-xl bg-white/10 border border-white/20 p-6 rounded-3xl shadow-xl group hover:border-brand-green/50 transition-all duration-300 text-center"
-                >
-                  <div className="w-28 h-28 mx-auto mb-5 overflow-hidden rounded-full bg-gradient-to-br from-brand-green to-brand-red flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                    {member.image_url ? (
-                      <img
-                        src={member.image_url}
-                        alt={
-                          member.image_alt ||
-                          `${member.full_name}, ${member.position}`
-                        }
-                        className="h-full w-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <span className="text-3xl font-black text-white">
-                        {member.full_name
-                          .split(/\s+/)
-                          .slice(0, 2)
-                          .map((part) => part[0])
-                          .join("")}
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    {member.full_name}
-                  </h3>
-                  <p className="text-brand-red font-semibold mb-3">
-                    {member.position}
-                  </p>
-                  <p className="text-gray-400 text-sm leading-relaxed">
-                    {member.biography}
-                  </p>
-                </motion.div>
-              ))
-            : placeholders.map((placeholder, index) => (
-                <motion.div
-                  key={placeholder.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.08, duration: 0.5 }}
-                  className="border border-white/20 bg-white/10 p-6 text-center shadow-xl backdrop-blur-xl rounded-3xl"
-                  aria-label="Team member profile placeholder"
-                >
-                  <div className="mx-auto mb-5 flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/10">
-                    <Users
-                      className="h-12 w-12 text-white/70"
-                      aria-hidden="true"
-                    />
-                  </div>
-                  <div className="mx-auto mb-3 h-5 w-32 rounded bg-white/20" />
-                  <div className="mx-auto h-4 w-24 rounded bg-brand-red/40" />
-                </motion.div>
+              {INTEREST_OPTIONS.map((option) => (
+                <option key={option}>{option}</option>
               ))}
-        </div>
+            </select>
+          </label>
+          <label className="mb-[18px] block text-[0.88rem] font-semibold text-ink">
+            Message <span className="text-red-600">*</span>
+            <textarea
+              className={`${fieldClass} mt-1.5 min-h-[130px] resize-y`}
+              name="message"
+              placeholder="How can we help you?"
+              required
+              value={formData.message}
+              onChange={handleChange}
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={submitState.loading}
+            className="btn-primary-lg w-full disabled:opacity-60"
+          >
+            {submitState.loading ? "Sending..." : "Send Message"}
+            <Send className="h-4 w-4" />
+          </button>
+          {!isSupabaseConfigured && (
+            <p className="mt-1.5 text-[0.82rem] text-muted">
+              Submitting opens your email app with the message pre-filled.
+            </p>
+          )}
+          {submitState.message && (
+            <p
+              className={`mt-3.5 text-[0.92rem] font-medium ${
+                submitState.error ? "text-red-600" : "text-green-700"
+              }`}
+            >
+              {submitState.message}
+            </p>
+          )}
+        </motion.form>
       </div>
     </section>
   );
-};
+}
 
-const Footer = () => {
+function Footer({ contact }) {
   return (
-    <footer className="py-12 px-4 border-t border-white/10 bg-brand-green">
-      <div className="max-w-7xl mx-auto text-center text-gray-400 text-sm">
-        <p>
-          &copy; {new Date().getFullYear()} Safety Innovations Impact Group
-          Limited. All rights reserved.
+    <footer className="bg-green-950 pt-[clamp(56px,8vw,80px)] text-[0.94rem] text-white/70">
+      <div className="mx-auto grid max-w-site gap-10 px-[clamp(16px,4vw,32px)] pb-12 md:grid-cols-2 xl:grid-cols-[1.5fr_1fr_1fr_1.4fr]">
+        <div>
+          <Brand light />
+          <p className="mt-[18px] max-w-[320px]">
+            Practical safety training and emergency preparedness for workplaces,
+            events and communities.
+          </p>
+        </div>
+        <div>
+          <h4 className="mb-[18px] font-sans text-[0.82rem] uppercase tracking-[0.12em] text-white">
+            Services
+          </h4>
+          <ul className="grid gap-2.5">
+            <li>
+              <a className="hover:text-white" href="#first-aid">
+                First Aid Training
+              </a>
+            </li>
+            <li>
+              <a className="hover:text-white" href="#fire-safety">
+                Fire Safety Training
+              </a>
+            </li>
+            <li>
+              <a className="hover:text-white" href="#compliance">
+                Workplace Compliance
+              </a>
+            </li>
+            <li>
+              <a className="hover:text-white" href="#events">
+                Event Safety & Care
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="mb-[18px] font-sans text-[0.82rem] uppercase tracking-[0.12em] text-white">
+            Company
+          </h4>
+          <ul className="grid gap-2.5">
+            <li>
+              <a className="hover:text-white" href="#about">
+                About Us
+              </a>
+            </li>
+            <li>
+              <a className="hover:text-white" href="#training">
+                Our Approach
+              </a>
+            </li>
+            <li>
+              <a className="hover:text-white" href="#community">
+                Community Initiative
+              </a>
+            </li>
+            <li>
+              <a className="hover:text-white" href="#contact">
+                Contact
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="mb-[18px] font-sans text-[0.82rem] uppercase tracking-[0.12em] text-white">
+            Get in touch
+          </h4>
+          <ul className="grid gap-2.5">
+            <li>
+              <a
+                className="inline-flex items-center gap-2.5 hover:text-white"
+                href={`tel:${contact.phone_link}`}
+              >
+                <Phone className="h-4 w-4 text-[#f5c6cd]" />
+                {contact.phone}
+              </a>
+            </li>
+            <li>
+              <a
+                className="inline-flex items-center gap-2.5 break-words hover:text-white"
+                href={`mailto:${contact.email}`}
+              >
+                <Mail className="h-4 w-4 text-[#f5c6cd]" />
+                {contact.email}
+              </a>
+            </li>
+            <li>
+              <a
+                className="inline-flex items-center gap-2.5 hover:text-white"
+                href={contact.instagram_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Instagram className="h-4 w-4 text-[#f5c6cd]" />
+                {contact.instagram}
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div className="mx-auto flex max-w-site items-center justify-between gap-4 border-t border-white/10 px-[clamp(16px,4vw,32px)] py-6 text-[0.86rem] max-sm:flex-col max-sm:items-start">
+        <p className="m-0">
+          © {new Date().getFullYear()} Safety Innovations Impact Group Limited.
+          All rights reserved.
         </p>
+        <a
+          href="#top"
+          className="inline-flex items-center gap-1.5 font-semibold hover:text-white"
+        >
+          Back to top
+          <ArrowUp className="h-4 w-4" />
+        </a>
       </div>
     </footer>
   );
-};
+}
 
-const BackToTop = () => {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const toggleVisibility = () => {
-      if (window.scrollY > 500) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
-      }
-    };
-
-    window.addEventListener("scroll", toggleVisibility);
-    return () => window.removeEventListener("scroll", toggleVisibility);
-  }, []);
-
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
+function PublicSite() {
+  const content = useSiteContent();
+  const { members } = useTeamMembers();
+  const hero = content.hero || {};
+  const about = content.about || {};
+  const cta = content.call_to_action || {};
+  const contact = content.contact || {};
 
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.button
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0 }}
-          onClick={scrollToTop}
-          className="fixed bottom-8 right-8 bg-brand-green hover:bg-brand-green/80 text-white p-4 rounded-full shadow-xl shadow-brand-green/30 transition-all duration-300 z-50 hover:scale-110"
-          aria-label="Back to top"
-        >
-          <ArrowUp className="w-6 h-6" />
-        </motion.button>
-      )}
-    </AnimatePresence>
-  );
-};
+    <div id="top" className="public-site min-h-screen bg-white text-body">
+      <a
+        href="#services"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-[200] focus:rounded-lg focus:bg-green-800 focus:px-4 focus:py-2.5 focus:text-white"
+      >
+        Skip to content
+      </a>
 
-const ScrollProgress = () => {
-  const [scrollProgress, setScrollProgress] = useState(0);
+      {/* Sticky Header Wrapper for Topbar and Navbar */}
+      <div className="sticky top-0 z-[100] w-full bg-white shadow-sm">
+        <Topbar contact={contact} />
+        <Navbar hasTeam={members.length > 0} />
+      </div>
 
-  useEffect(() => {
-    const updateScrollProgress = () => {
-      const scrollTop = window.scrollY;
-      const docHeight =
-        document.documentElement.scrollHeight - window.innerHeight;
-      const progress = (scrollTop / docHeight) * 100;
-      setScrollProgress(progress);
-    };
-
-    window.addEventListener("scroll", updateScrollProgress);
-    return () => window.removeEventListener("scroll", updateScrollProgress);
-  }, []);
-
-  return (
-    <div className="fixed top-0 left-0 w-full h-1 bg-white/10 z-[60]">
-      <motion.div
-        className="h-full bg-gradient-to-r from-brand-red to-brand-green"
-        style={{ width: `${scrollProgress}%` }}
-        transition={{ duration: 0.1 }}
+      <Hero content={hero} />
+      <ServicesOverview />
+      <SplitService
+        id="first-aid"
+        altBg
+        eyebrow="Service 01"
+        title="First Aid Training"
+        lead="Our first aid programmes focus on realistic response, not memorisation. Participants practise repeatedly until they can act confidently and without hesitation."
+        image="/images/first-aid-cpr-training.jpg"
+        alt="Participant practising chest compressions on a CPR manikin during a first aid training session"
+        lists={[
+          {
+            title: "Courses include",
+            items: [
+              "Basic First Aid",
+              "CPR & AED Use",
+              "Workplace First Aid Certification",
+              "Paediatric First Aid",
+              "Emergency Scene Management",
+              "Refresher & Recertification Training",
+            ],
+          },
+          {
+            title: "Participants learn to",
+            items: [
+              "Assess an emergency safely",
+              "Stabilise injured persons",
+              "Perform CPR correctly",
+              "Control bleeding and shock",
+              "Manage medical emergencies until professionals arrive",
+            ],
+          },
+        ]}
       />
+      <SplitService
+        id="fire-safety"
+        reverse
+        eyebrow="Service 02"
+        title="Fire Safety Training"
+        lead="Fire emergencies escalate rapidly. Our fire safety training ensures staff know exactly what to do in the first critical minutes."
+        image="/images/fire-safety-training.jpg"
+        alt="Participants practising fire extinguisher use during an outdoor safety exercise"
+        lists={[
+          {
+            title: "Programmes include",
+            items: [
+              "Fire Awareness",
+              "Fire Warden / Fire Marshal Training",
+              "Fire Extinguisher Identification & Use",
+              "Evacuation Procedures",
+              "Practical Fire Drills",
+            ],
+          },
+        ]}
+      />
+      <SplitService
+        id="compliance"
+        altBg
+        eyebrow="Service 03"
+        title="Workplace Safety & Compliance Support"
+        lead="We help organisations move beyond paperwork toward real readiness."
+        image="/images/workplace-safety.jpg"
+        alt="Safety professionals in hard hats reviewing a workplace plan on site"
+        lists={[
+          {
+            title: "Services include",
+            items: [
+              "Emergency Evacuation Planning",
+              "Risk Assessments",
+              "Safety Audits & Inspections",
+              "Safety File Guidance",
+              "Toolbox Talks & Staff Safety Briefings",
+            ],
+          },
+        ]}
+        extra={
+          <div className="mt-[30px]">
+            <h3 className="mb-3.5 font-sans text-[0.8rem] font-bold uppercase tracking-[0.12em] text-green-700">
+              Safety equipment guidance
+            </h3>
+            <p className="mb-3 text-[0.93rem] text-muted">
+              We advise on the right selection and placement of:
+            </p>
+            <ul className="flex flex-wrap gap-2">
+              {[
+                "First Aid Kits",
+                "Fire Extinguishers",
+                "Emergency Signage",
+                "AED Devices",
+              ].map((tag) => (
+                <li
+                  key={tag}
+                  className="rounded-full border border-green-100 bg-green-50 px-3.5 py-1.5 text-[0.88rem] font-medium text-green-800"
+                >
+                  {tag}
+                </li>
+              ))}
+            </ul>
+          </div>
+        }
+      />
+      <EventSafety />
+      <TrainingApproach />
+      <About content={about} />
+      <CommunityInitiative />
+      <Team members={members} />
+      <CallToAction content={cta} />
+      <Contact content={contact} />
+      <Footer contact={contact} />
     </div>
   );
-};
+}
 
 function App() {
-  const content = useSiteContent();
-  const teamMembers = useTeamMembers();
-  const teamMembers = useTeamMembers();
-
   return (
     <Router>
       <Routes>
         <Route path="/admin/*" element={<AdminRouter />} />
-        <Route
-          path="*"
-          element={
-            <div className="min-h-screen bg-brand-green text-white font-sans antialiased selection:bg-brand-red selection:text-white">
-              <ScrollProgress />
-              <Hero content={content.hero} />
-              <Services />
-              <TrainingApproach />
-              <Impact />
-              <About content={content.about} />
-              <CommunityInitiative />
-              <Team members={teamMembers} />
-              <Contact content={content.contact} />
-              <Footer />
-              <BackToTop />
-            </div>
-          }
-        />
+        <Route path="*" element={<PublicSite />} />
       </Routes>
     </Router>
-    <div className="public-site min-h-screen overflow-x-hidden bg-brand-green font-sans text-white antialiased selection:bg-brand-red selection:text-white">
-      <ScrollProgress />
-      <Hero content={content.hero} showTeam />
-      <Services />
-      <TrainingApproach />
-      <Impact />
-      <About content={content.about} />
-      <CommunityInitiative />
-      <Team members={teamMembers} />
-      <Contact content={content.contact} />
-      <Footer />
-      <BackToTop />
-    </div>
   );
 }
 
