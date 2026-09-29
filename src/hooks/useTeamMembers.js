@@ -10,7 +10,9 @@ export function useTeamMembers() {
     let active = true;
     supabase
       .from("team_members")
-      .select("id, full_name, position, biography, image_url, image_alt, display_order")
+      .select(
+        "id, full_name, position, biography, image_url, image_alt, display_order",
+      )
       .eq("is_published", true)
       .order("display_order", { ascending: true })
       .order("created_at", { ascending: true })
@@ -23,5 +25,5 @@ export function useTeamMembers() {
     };
   }, []);
 
-  return members;
+  return { members };
 }

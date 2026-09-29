@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
-// These public project values are intentionally safe for browser use. RLS is the
-// security boundary; environment variables can override them per deployment.
+// These are public browser credentials. Row Level Security remains the
+// authorization boundary, while deployment variables can override them.
 const supabaseUrl =
   import.meta.env.VITE_SUPABASE_URL || "https://pegywlozkjzrxhsthpgh.supabase.co";
 const supabaseAnonKey =

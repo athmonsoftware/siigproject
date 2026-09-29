@@ -6,25 +6,31 @@ export default {
   theme: {
     extend: {
       colors: theme.tailwindColors,
-      animation: {
-        "gradient-x": "gradient-x 15s ease infinite",
-        float: "float 6s ease-in-out infinite",
+      fontFamily: {
+        sans: [
+          "Inter",
+          "system-ui",
+          "-apple-system",
+          "Segoe UI",
+          "Roboto",
+          "sans-serif",
+        ],
+        display: [
+          "Plus Jakarta Sans",
+          "Inter",
+          "system-ui",
+          "-apple-system",
+          "Segoe UI",
+          "Roboto",
+          "sans-serif",
+        ],
       },
-      keyframes: {
-        "gradient-x": {
-          "0%, 100%": {
-            "background-size": "200% 200%",
-            "background-position": "left center",
-          },
-          "50%": {
-            "background-size": "200% 200%",
-            "background-position": "right center",
-          },
-        },
-        float: {
-          "0%, 100%": { transform: "translateY(0px)" },
-          "50%": { transform: "translateY(-20px)" },
-        },
+      maxWidth: {
+        site: "1200px",
+      },
+      boxShadow: {
+        brand: "0 6px 24px -8px rgba(6, 42, 31, .18)",
+        "brand-lg": "0 24px 60px -20px rgba(6, 42, 31, .35)",
       },
     },
   },

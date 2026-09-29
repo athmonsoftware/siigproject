@@ -27,12 +27,15 @@ create table if not exists public.enquiries (
   email text not null check (char_length(email) between 5 and 254),
   phone text check (char_length(phone) <= 40),
   company text check (char_length(company) <= 160),
+  interested_in text, 
   message text not null check (char_length(message) between 5 and 5000),
   status text not null default 'new' check (status in ('new', 'contacted', 'closed')),
   notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.enquiries add column if not exists interested_in text;
 
 create table if not exists public.team_members (
   id uuid primary key default gen_random_uuid(),
@@ -43,6 +46,18 @@ create table if not exists public.team_members (
   image_alt text check (char_length(image_alt) <= 240),
   display_order integer not null default 0 check (display_order >= 0),
   is_published boolean not null default true,
+  created_by uuid references auth.users(id) on delete set null,
+  updated_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.certifications (
+  id uuid primary key default gen_random_uuid(),
+  name text not null check (char_length(name) between 2 and 180),
+  description text not null default '' check (char_length(description) <= 1000),
+  display_order integer not null default 0 check (display_order >= 0),
+  is_active boolean not null default false,
   created_by uuid references auth.users(id) on delete set null,
   updated_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
@@ -121,10 +136,15 @@ drop trigger if exists team_members_updated_at on public.team_members;
 create trigger team_members_updated_at before update on public.team_members
 for each row execute function public.touch_updated_at();
 
+drop trigger if exists certifications_updated_at on public.certifications;
+create trigger certifications_updated_at before update on public.certifications
+for each row execute function public.touch_updated_at();
+
 alter table public.profiles enable row level security;
 alter table public.site_content enable row level security;
 alter table public.enquiries enable row level security;
 alter table public.team_members enable row level security;
+alter table public.certifications enable row level security;
 
 drop policy if exists "Users read own profile" on public.profiles;
 create policy "Users read own profile" on public.profiles for select
@@ -160,6 +180,14 @@ to anon, authenticated using (is_published or public.is_staff());
 
 drop policy if exists "Staff manages team members" on public.team_members;
 create policy "Staff manages team members" on public.team_members for all
+to authenticated using (public.is_staff()) with check (public.is_staff());
+
+drop policy if exists "Public reads active certifications" on public.certifications;
+create policy "Public reads active certifications" on public.certifications for select
+to anon, authenticated using (is_active or public.is_staff());
+
+drop policy if exists "Staff manages certifications" on public.certifications;
+create policy "Staff manages certifications" on public.certifications for all
 to authenticated using (public.is_staff()) with check (public.is_staff());
 
 insert into public.site_content (section, content, is_published) values
@@ -198,6 +226,35 @@ with check (bucket_id = 'site-media' and public.is_staff());
 drop policy if exists "Staff deletes site media" on storage.objects;
 create policy "Staff deletes site media" on storage.objects for delete
 to authenticated using (bucket_id = 'site-media' and public.is_staff());
+
+create table if not exists public.articles (
+  id uuid primary key default gen_random_uuid(),
+  title text not null check (char_length(title) between 2 and 200),
+  slug text not null unique check (char_length(slug) between 2 and 200),
+  excerpt text check (char_length(excerpt) <= 500),
+  content text not null,
+  cover_image text check (char_length(cover_image) <= 1000),
+  cover_image_alt text check (char_length(cover_image_alt) <= 240),
+  is_published boolean not null default true,
+  created_by uuid references auth.users(id) on delete set null,
+  updated_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+drop trigger if exists articles_updated_at on public.articles;
+create trigger articles_updated_at before update on public.articles
+for each row execute function public.touch_updated_at();
+
+alter table public.articles enable row level security;
+
+drop policy if exists "Public reads published articles" on public.articles;
+create policy "Public reads published articles" on public.articles for select
+to anon, authenticated using (is_published or public.is_staff());
+
+drop policy if exists "Staff manages articles" on public.articles;
+create policy "Staff manages articles" on public.articles for all
+to authenticated using (public.is_staff()) with check (public.is_staff());
 
 -- After creating the first user in Authentication > Users, promote that account:
 -- insert into public.profiles (id, full_name, role)

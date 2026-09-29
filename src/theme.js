@@ -1,31 +1,38 @@
-// Centralized theme configuration for Safety Innovations Impact Group
-// Update colors here to change the entire website theme
-
 export const theme = {
   colors: {
-    // Brand colors based on logo
-    brandGreen: "#2d5a3d",
-    brandRed: "#8b0000",
-    brandBlue: "#4a90e2",
-
-    // Background colors
-    deepCharcoal: "#121824",
+    brandGreen: "#0c3d2e",
+    brandRed: "#a51f33",
+    brandBlue: "#4a9fd8",
+    deepCharcoal: "#112019",
     pureWhite: "#FFFFFF",
-
-    // Accent colors (legacy, can be updated)
-    emergencyOrange: "#FF5722",
-    safetyCyan: "#00E5FF",
+    emergencyOrange: "#a51f33",
+    safetyCyan: "#4a9fd8",
   },
-
-  // Tailwind color mapping
   tailwindColors: {
-    "brand-green": "#2d5a3d",
-    "brand-red": "#8b0000",
-    "brand-blue": "#4a90e2",
-    "deep-charcoal": "#121824",
+    "brand-green": "#0c3d2e",
+    "green-950": "#062a1f",
+    "green-900": "#0a3528",
+    "green-800": "#0c3d2e",
+    "green-700": "#135340",
+    "green-600": "#1b6a52",
+    "green-100": "#dcebe4",
+    "green-50": "#eef5f1",
+    "brand-red": "#a51f33",
+    "red-700": "#8f1a2b",
+    "red-600": "#a51f33",
+    "red-500": "#c02a40",
+    "red-50": "#fbeef0",
+    "brand-blue": "#4a9fd8",
+    "sky-400": "#4a9fd8",
+    "deep-charcoal": "#112019",
+    ink: "#112019",
+    body: "#3c4d45",
+    muted: "#64756d",
+    line: "#dde6e1",
+    "bg-alt": "#f5f8f6",
     "pure-white": "#FFFFFF",
-    "emergency-orange": "#FF5722",
-    "safety-cyan": "#00E5FF",
+    "emergency-orange": "#a51f33",
+    "safety-cyan": "#4a9fd8",
   },
 };
 
