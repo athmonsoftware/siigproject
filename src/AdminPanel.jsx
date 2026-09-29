@@ -7,12 +7,15 @@ import {
   Image,
   LogOut,
   Menu,
+  Pencil,
+  Plus,
   RefreshCw,
   Save,
   Settings,
   ShieldCheck,
   Trash2,
   Upload,
+  UserRound,
   X,
 } from "lucide-react";
 import { contentLabels, defaultContent } from "./content/defaults";
@@ -21,6 +24,7 @@ import { isSupabaseConfigured, supabase } from "./lib/supabase";
 const navigation = [
   { id: "overview", label: "Overview", icon: BarChart3 },
   { id: "content", label: "Website content", icon: FileText },
+  { id: "team", label: "Team members", icon: UserRound },
   { id: "enquiries", label: "Enquiries", icon: Inbox },
   { id: "media", label: "Media library", icon: Image },
   { id: "settings", label: "Settings", icon: Settings },
@@ -86,7 +90,7 @@ function Login({ onAuthenticated }) {
     setMessage(
       error
         ? error.message
-        : "Check your email for the secure password reset link.",
+        : "Check your email for the secure password reset link."
     );
     setLoading(false);
   };
@@ -163,8 +167,8 @@ function Login({ onAuthenticated }) {
             {loading
               ? "Working…"
               : recoveryMode
-                ? "Send reset link"
-                : "Sign in"}
+              ? "Send reset link"
+              : "Sign in"}
           </button>
           <button
             type="button"
@@ -280,10 +284,10 @@ function Metric({ label, value, note }) {
   );
 }
 
-function Overview({ enquiries, content }) {
+function Overview({ enquiries, content, teamMembers }) {
   const newCount = enquiries.filter((item) => item.status === "new").length;
   const published = Object.values(content).filter(
-    (item) => item.is_published,
+    (item) => item.is_published
   ).length;
   return (
     <div>
@@ -308,9 +312,9 @@ function Overview({ enquiries, content }) {
           note={`of ${Object.keys(defaultContent).length} managed sections`}
         />
         <Metric
-          label="Website status"
-          value="Live"
-          note="Public content available"
+          label="Team members"
+          value={teamMembers.filter((member) => member.is_published).length}
+          note="Published on the website"
         />
       </div>
       <section className="mt-8 border border-slate-200 bg-white p-6 shadow-sm">
@@ -360,7 +364,9 @@ function Status({ status }) {
   };
   return (
     <span
-      className={`w-fit px-2.5 py-1 text-xs font-bold capitalize ${styles[status] || "bg-slate-100 text-slate-700"}`}
+      className={`w-fit px-2.5 py-1 text-xs font-bold capitalize ${
+        styles[status] || "bg-slate-100 text-slate-700"
+      }`}
     >
       {status}
     </span>
@@ -394,7 +400,7 @@ function ContentEditor({ rows, onSaved, userId }) {
         updated_by: userId,
         updated_at: new Date().toISOString(),
       },
-      { onConflict: "section" },
+      { onConflict: "section" }
     );
     setSaving(false);
     if (!error) {
@@ -418,7 +424,11 @@ function ContentEditor({ rows, onSaved, userId }) {
             <button
               key={key}
               onClick={() => setSelected(key)}
-              className={`w-full px-4 py-3 text-left text-sm font-bold transition ${selected === key ? "bg-emerald-800 text-white" : "text-slate-700 hover:bg-slate-100"}`}
+              className={`w-full px-4 py-3 text-left text-sm font-bold transition ${
+                selected === key
+                  ? "bg-emerald-800 text-white"
+                  : "text-slate-700 hover:bg-slate-100"
+              }`}
             >
               {label}
             </button>
@@ -498,10 +508,6 @@ function Enquiries({ items, onUpdated }) {
     await supabase.from("enquiries").update({ status }).eq("id", id);
     onUpdated();
   };
-  const updateNotes = async (id, notes) => {
-    await supabase.from("enquiries").update({ notes }).eq("id", id);
-    onUpdated();
-  };
   return (
     <div>
       <Header
@@ -516,7 +522,6 @@ function Enquiries({ items, onUpdated }) {
               <th className="p-4">Message</th>
               <th className="p-4">Received</th>
               <th className="p-4">Status</th>
-              <th className="p-4">Notes</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -550,26 +555,383 @@ function Enquiries({ items, onUpdated }) {
                     <option value="closed">Closed</option>
                   </select>
                 </td>
-                <td className="p-4">
-                  <textarea
-                    value={item.notes || ""}
-                    onChange={(e) => updateNotes(item.id, e.target.value)}
-                    placeholder="Add internal notes..."
-                    className="w-full border border-slate-300 bg-white px-3 py-2 text-xs resize-none"
-                    rows="2"
-                  />
-                </td>
               </tr>
             ))}
             {!items.length && (
               <tr>
-                <td colSpan={5} className="p-12 text-center text-slate-500">
+                <td colSpan="4" className="p-12 text-center text-slate-500">
                   No enquiries have arrived yet.
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+const emptyTeamMember = {
+  full_name: "",
+  position: "",
+  biography: "",
+  image_url: "",
+  image_alt: "",
+  display_order: 0,
+  is_published: true,
+};
+
+function TeamManager({ items, userId, onUpdated }) {
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState(emptyTeamMember);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const reset = () => {
+    setEditingId(null);
+    setForm({ ...emptyTeamMember, display_order: items.length });
+    setMessage("");
+  };
+
+  const edit = (member) => {
+    setEditingId(member.id);
+    setForm({
+      full_name: member.full_name,
+      position: member.position,
+      biography: member.biography || "",
+      image_url: member.image_url || "",
+      image_alt: member.image_alt || "",
+      display_order: member.display_order ?? 0,
+      is_published: member.is_published,
+    });
+    setMessage("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const uploadPhoto = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage("Photo must be 5 MB or smaller.");
+      event.target.value = "";
+      return;
+    }
+    setBusy(true);
+    setMessage("");
+    const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]+/g, "-");
+    const path = `team/${Date.now()}-${safeName}`;
+    const { error } = await supabase.storage
+      .from("site-media")
+      .upload(path, file, { cacheControl: "3600", upsert: false });
+    if (error) setMessage(error.message);
+    else {
+      const { data } = supabase.storage.from("site-media").getPublicUrl(path);
+      setForm((current) => ({ ...current, image_url: data.publicUrl }));
+      setMessage("Photo uploaded. Save the team member to publish it.");
+    }
+    setBusy(false);
+    event.target.value = "";
+  };
+
+  const save = async (event) => {
+    event.preventDefault();
+    setBusy(true);
+    setMessage("");
+    const payload = {
+      ...form,
+      full_name: form.full_name.trim(),
+      position: form.position.trim(),
+      biography: form.biography.trim(),
+      image_url: form.image_url.trim() || null,
+      image_alt: form.image_alt.trim() || null,
+      display_order: Number(form.display_order) || 0,
+      updated_by: userId,
+    };
+    const operation = editingId
+      ? supabase.from("team_members").update(payload).eq("id", editingId)
+      : supabase
+          .from("team_members")
+          .insert({ ...payload, created_by: userId });
+    const { error } = await operation;
+    setBusy(false);
+    if (error) setMessage(error.message);
+    else {
+      setMessage(editingId ? "Team member updated." : "Team member added.");
+      setEditingId(null);
+      setForm({
+        ...emptyTeamMember,
+        display_order: items.length + (editingId ? 0 : 1),
+      });
+      onUpdated();
+    }
+  };
+
+  const remove = async (member) => {
+    if (!window.confirm(`Remove ${member.full_name} from the team?`)) return;
+    setBusy(true);
+    setMessage("");
+    const { error } = await supabase
+      .from("team_members")
+      .delete()
+      .eq("id", member.id);
+    setBusy(false);
+    setMessage(error ? error.message : "Team member removed.");
+    if (!error) {
+      if (editingId === member.id) reset();
+      onUpdated();
+    }
+  };
+
+  return (
+    <div>
+      <Header
+        title="Team members"
+        subtitle="Add the people behind SIIG, upload their photographs, and choose who appears publicly."
+      />
+      <div className="grid gap-6 xl:grid-cols-[minmax(20rem,28rem)_1fr]">
+        <form
+          onSubmit={save}
+          className="h-fit border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-800">
+                {editingId ? "Editing profile" : "New profile"}
+              </p>
+              <h2 className="mt-1 text-xl font-black text-slate-950">
+                {editingId ? form.full_name : "Add team member"}
+              </h2>
+            </div>
+            {editingId && (
+              <button
+                type="button"
+                onClick={reset}
+                className="text-sm font-bold text-emerald-800 hover:underline"
+              >
+                Add new
+              </button>
+            )}
+          </div>
+          <label className="mt-6 block text-sm font-bold text-slate-700">
+            Full name
+            <input
+              className={inputClass}
+              required
+              minLength="2"
+              maxLength="120"
+              value={form.full_name}
+              onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+            />
+          </label>
+          <label className="mt-5 block text-sm font-bold text-slate-700">
+            Position or role
+            <input
+              className={inputClass}
+              required
+              minLength="2"
+              maxLength="160"
+              value={form.position}
+              onChange={(e) => setForm({ ...form, position: e.target.value })}
+            />
+          </label>
+          <label className="mt-5 block text-sm font-bold text-slate-700">
+            Short biography
+            <textarea
+              className={inputClass}
+              rows="5"
+              maxLength="2000"
+              value={form.biography}
+              onChange={(e) => setForm({ ...form, biography: e.target.value })}
+            />
+          </label>
+          <div className="mt-5 grid gap-4 sm:grid-cols-[7rem_1fr] sm:items-start">
+            <div className="aspect-[4/5] overflow-hidden bg-slate-100">
+              {form.image_url ? (
+                <img
+                  src={form.image_url}
+                  alt="Profile preview"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="grid h-full place-items-center text-slate-400">
+                  <UserRound className="h-8 w-8" />
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 bg-slate-950 px-4 text-sm font-bold text-white hover:bg-slate-800">
+                <Upload className="h-4 w-4" />
+                {busy ? "Working…" : "Upload photo"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  disabled={busy}
+                  onChange={uploadPhoto}
+                />
+              </label>
+              <p className="mt-2 text-xs leading-5 text-slate-500">
+                Portrait JPG, PNG, or WebP. Maximum 5 MB.
+              </p>
+            </div>
+          </div>
+          <label className="mt-5 block text-sm font-bold text-slate-700">
+            Image URL
+            <input
+              className={inputClass}
+              type="url"
+              value={form.image_url}
+              onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+            />
+          </label>
+          <label className="mt-5 block text-sm font-bold text-slate-700">
+            Image description
+            <input
+              className={inputClass}
+              maxLength="240"
+              placeholder="Example: Ama Mensah, Head of Training"
+              value={form.image_alt}
+              onChange={(e) => setForm({ ...form, image_alt: e.target.value })}
+            />
+          </label>
+          <label className="mt-5 block text-sm font-bold text-slate-700">
+            Display order
+            <input
+              className={inputClass}
+              type="number"
+              min="0"
+              value={form.display_order}
+              onChange={(e) =>
+                setForm({ ...form, display_order: e.target.value })
+              }
+            />
+          </label>
+          <label className="mt-5 flex items-center gap-3 text-sm font-bold text-slate-700">
+            <input
+              type="checkbox"
+              checked={form.is_published}
+              onChange={(e) =>
+                setForm({ ...form, is_published: e.target.checked })
+              }
+              className="h-5 w-5 accent-emerald-800"
+            />{" "}
+            Show on public website
+          </label>
+          {message && (
+            <p
+              role="status"
+              className="mt-5 bg-slate-100 p-3 text-sm font-semibold text-slate-700"
+            >
+              {message}
+            </p>
+          )}
+          <button
+            disabled={busy}
+            className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 bg-emerald-800 px-5 font-bold text-white hover:bg-emerald-900 disabled:opacity-60"
+          >
+            {editingId ? (
+              <Save className="h-4 w-4" />
+            ) : (
+              <Plus className="h-4 w-4" />
+            )}
+            {busy ? "Saving…" : editingId ? "Save changes" : "Add team member"}
+          </button>
+        </form>
+
+        <section className="border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-black text-slate-950">
+                Current team
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Lower display-order numbers appear first.
+              </p>
+            </div>
+            <span className="text-sm font-bold text-slate-500">
+              {items.length} total
+            </span>
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+            {items.map((member) => (
+              <article
+                key={member.id}
+                className="overflow-hidden border border-slate-200 bg-white"
+              >
+                <div className="aspect-[4/3] bg-slate-100">
+                  {member.image_url ? (
+                    <img
+                      src={member.image_url}
+                      alt={member.image_alt || ""}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="grid h-full place-items-center text-slate-400">
+                      <UserRound className="h-10 w-10" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="break-words font-black text-slate-950">
+                        {member.full_name}
+                      </h3>
+                      <p className="mt-1 break-words text-sm font-semibold text-emerald-800">
+                        {member.position}
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 px-2 py-1 text-[11px] font-bold uppercase ${
+                        member.is_published
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {member.is_published ? "Live" : "Draft"}
+                    </span>
+                  </div>
+                  {member.biography && (
+                    <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">
+                      {member.biography}
+                    </p>
+                  )}
+                  <p className="mt-3 text-xs font-bold text-slate-400">
+                    Order {member.display_order}
+                  </p>
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      onClick={() => edit(member)}
+                      className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 border border-slate-300 px-3 text-sm font-bold text-slate-700 hover:bg-slate-50"
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => remove(member)}
+                      disabled={busy}
+                      className="grid h-10 w-10 place-items-center text-red-700 hover:bg-red-50"
+                      aria-label={`Remove ${member.full_name}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+            {!items.length && (
+              <div className="border border-dashed border-slate-300 p-10 text-center md:col-span-2 2xl:col-span-3">
+                <UserRound className="mx-auto h-9 w-9 text-slate-400" />
+                <p className="mt-4 font-bold text-slate-700">
+                  No team members yet
+                </p>
+                <p className="mt-1 text-sm text-slate-500">
+                  Use the form to add the first public profile.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -586,7 +948,7 @@ function MediaLibrary() {
       sortBy: { column: "created_at", order: "desc" },
     });
     setFiles(
-      (data || []).filter((file) => file.name !== ".emptyFolderPlaceholder"),
+      (data || []).filter((file) => file.name !== ".emptyFolderPlaceholder")
     );
   };
 
@@ -732,20 +1094,35 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState("overview");
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleSignOut = () => {
+    setAuthorized(null);
+    setSession(null);
+    setMenuOpen(false);
+    void supabase.auth.signOut({ scope: "local" });
+  };
   const [enquiries, setEnquiries] = useState([]);
   const [contentRows, setContentRows] = useState({});
+  const [teamMembers, setTeamMembers] = useState([]);
 
   const load = async () => {
-    const [{ data: enquiryData }, { data: contentData }] = await Promise.all([
-      supabase
-        .from("enquiries")
-        .select("*")
-        .order("created_at", { ascending: false }),
-      supabase.from("site_content").select("*"),
-    ]);
+    const [{ data: enquiryData }, { data: contentData }, { data: teamData }] =
+      await Promise.all([
+        supabase
+          .from("enquiries")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        supabase.from("site_content").select("*"),
+        supabase
+          .from("team_members")
+          .select("*")
+          .order("display_order", { ascending: true })
+          .order("created_at", { ascending: true }),
+      ]);
     setEnquiries(enquiryData || []);
+    setTeamMembers(teamData || []);
     const rows = Object.fromEntries(
-      (contentData || []).map((row) => [row.section, row]),
+      (contentData || []).map((row) => [row.section, row])
     );
     for (const [section, content] of Object.entries(defaultContent))
       if (!rows[section])
@@ -763,7 +1140,7 @@ export default function AdminPanel() {
       setLoading(false);
     });
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, nextSession) => setSession(nextSession),
+      (_event, nextSession) => setSession(nextSession)
     );
     return () => listener.subscription.unsubscribe();
   }, []);
@@ -786,19 +1163,27 @@ export default function AdminPanel() {
 
   const currentView = useMemo(() => {
     if (active === "content")
+      return <ContentEditor rows={contentRows} onSaved={load} />;
+    if (active === "team")
       return (
-        <ContentEditor
-          rows={contentRows}
-          onSaved={load}
-          userId={session?.user?.id}
+        <TeamManager
+          items={teamMembers}
+          userId={session.user.id}
+          onUpdated={load}
         />
       );
     if (active === "enquiries")
       return <Enquiries items={enquiries} onUpdated={load} />;
     if (active === "media") return <MediaLibrary />;
     if (active === "settings") return <SettingsPanel user={session.user} />;
-    return <Overview enquiries={enquiries} content={contentRows} />;
-  }, [active, enquiries, contentRows, session]);
+    return (
+      <Overview
+        enquiries={enquiries}
+        content={contentRows}
+        teamMembers={teamMembers}
+      />
+    );
+  }, [active, enquiries, contentRows, teamMembers, session]);
 
   if (!isSupabaseConfigured) return <SetupScreen />;
   if (loading)
@@ -830,7 +1215,7 @@ export default function AdminPanel() {
             administrator or editor role.
           </p>
           <button
-            onClick={() => supabase.auth.signOut()}
+            onClick={handleSignOut}
             className="mt-7 min-h-11 bg-white px-5 font-bold text-slate-950"
           >
             Sign out
@@ -856,7 +1241,9 @@ export default function AdminPanel() {
         />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col bg-slate-950 p-5 text-white transition-transform duration-300 lg:translate-x-0 ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col bg-slate-950 p-5 text-white transition-transform duration-300 lg:translate-x-0 ${
+          menuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <div className="flex items-center justify-between">
           <a href="/" className="flex items-center gap-3">
@@ -882,7 +1269,11 @@ export default function AdminPanel() {
                 setActive(id);
                 setMenuOpen(false);
               }}
-              className={`flex min-h-12 w-full items-center gap-3 px-4 text-left font-bold transition ${active === id ? "bg-emerald-700 text-white" : "text-slate-300 hover:bg-white/10 hover:text-white"}`}
+              className={`flex min-h-12 w-full items-center gap-3 px-4 text-left font-bold transition ${
+                active === id
+                  ? "bg-emerald-700 text-white"
+                  : "text-slate-300 hover:bg-white/10 hover:text-white"
+              }`}
             >
               <Icon className="h-5 w-5" />
               {label}
@@ -894,7 +1285,7 @@ export default function AdminPanel() {
             {session.user.email}
           </p>
           <button
-            onClick={() => supabase.auth.signOut()}
+            onClick={handleSignOut}
             className="mt-3 flex min-h-11 w-full items-center gap-3 px-2 font-bold text-slate-300 hover:text-white"
           >
             <LogOut className="h-5 w-5" />
