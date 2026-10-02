@@ -11,6 +11,7 @@ import ArticlesManagement from "./pages/ArticlesManagement";
 import MediaLibrary from "./pages/MediaLibrary";
 import TeamManagement from "./pages/TeamManagement";
 import CertificationsManagement from "./pages/CertificationsManagement";
+import GalleryManagement from "./pages/GalleryManagement";
 import AdminSettings from "./pages/AdminSettings";
 
 function ProtectedRoute({ children }) {
@@ -94,6 +95,7 @@ function AdminRoutes() {
         <Route path="media" element={<MediaLibrary />} />
         <Route path="team" element={<TeamManagement />} />
         <Route path="certifications" element={<CertificationsManagement />} />
+        <Route path="gallery" element={<GalleryManagement />} />
         <Route path="settings" element={<AdminSettings />} />
         <Route path="*" element={<Navigate to="" replace />} />
       </Routes>
