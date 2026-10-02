@@ -227,6 +227,34 @@ drop policy if exists "Staff deletes site media" on storage.objects;
 create policy "Staff deletes site media" on storage.objects for delete
 to authenticated using (bucket_id = 'site-media' and public.is_staff());
 
+create table if not exists public.gallery (
+  id uuid primary key default gen_random_uuid(),
+  title text not null check (char_length(title) between 2 and 200),
+  description text check (char_length(description) <= 500),
+  image_url text not null check (char_length(image_url) <= 1000),
+  image_alt text check (char_length(image_alt) <= 240),
+  display_order integer not null default 0 check (display_order >= 0),
+  is_published boolean not null default true,
+  created_by uuid references auth.users(id) on delete set null,
+  updated_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+drop trigger if exists gallery_updated_at on public.gallery;
+create trigger gallery_updated_at before update on public.gallery
+for each row execute function public.touch_updated_at();
+
+alter table public.gallery enable row level security;
+
+drop policy if exists "Public reads published gallery" on public.gallery;
+create policy "Public reads published gallery" on public.gallery for select
+to anon, authenticated using (is_published or public.is_staff());
+
+drop policy if exists "Staff manages gallery" on public.gallery;
+create policy "Staff manages gallery" on public.gallery for all
+to authenticated using (public.is_staff()) with check (public.is_staff());
+
 create table if not exists public.articles (
   id uuid primary key default gen_random_uuid(),
   title text not null check (char_length(title) between 2 and 200),

@@ -15,6 +15,7 @@ const navigation = [
     label: "Certifications",
     path: "/admin/certifications",
   },
+  { id: "gallery", label: "Gallery", path: "/admin/gallery" },
   { id: "settings", label: "Settings", path: "/admin/settings" },
 ];
 
@@ -24,7 +25,7 @@ export default function AdminLayout({ children, session }) {
 
   // Automatically determine active nav based on current pathname
   const activeNav = navigation.find(
-    (item) => item.path === location.pathname
+    (item) => item.path === location.pathname,
   )?.id;
 
   if (!isSupabaseConfigured) {

@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useSiteContent } from "./hooks/useSiteContent";
 import { useTeamMembers } from "./hooks/useTeamMembers";
+import { useGallery } from "./hooks/useGallery";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import AdminRouter from "./admin/AdminRouter";
 import { Articles } from "./components/Articles";
@@ -139,13 +140,7 @@ function Topbar({ contact }) {
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const [activeSection, setActiveSection] = useState("");
   const { articles } = useArticles();
   const hasArticles = articles && articles.length > 0;
 
@@ -157,9 +152,38 @@ function Navbar() {
     { name: "About", href: "#about" },
     { name: "Community", href: "#community" },
     { name: "Team", href: "#team" },
+    { name: "Gallery", href: "#gallery" },
   ];
 
   const close = () => setIsOpen(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+
+      // Calculate active section
+      const sections = navLinks.map((link) => link.href.replace("#", ""));
+      const scrollPosition = window.scrollY + 100;
+
+      for (const sectionId of sections) {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          const { offsetTop, offsetHeight } = element;
+          if (
+            scrollPosition >= offsetTop &&
+            scrollPosition < offsetTop + offsetHeight
+          ) {
+            setActiveSection(sectionId);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [navLinks]);
 
   return (
     <header
@@ -178,17 +202,25 @@ function Navbar() {
           aria-label="Primary"
         >
           <ul className="flex items-center gap-1 max-[980px]:flex-col max-[980px]:items-stretch">
-            {navLinks.map((link) => (
-              <li key={link.name}>
-                <a
-                  href={link.href}
-                  onClick={close}
-                  className="relative block rounded-lg px-3 py-2 text-[0.94rem] font-medium text-body transition hover:bg-green-50 hover:text-green-800 max-[980px]:rounded-none max-[980px]:border-b max-[980px]:border-line max-[980px]:px-1 max-[980px]:py-3.5 max-[980px]:text-[1.05rem] max-[980px]:hover:bg-transparent"
-                >
-                  {link.name}
-                </a>
-              </li>
-            ))}
+            {navLinks.map((link) => {
+              const sectionId = link.href.replace("#", "");
+              const isActive = activeSection === sectionId;
+              return (
+                <li key={link.name}>
+                  <a
+                    href={link.href}
+                    onClick={close}
+                    className={`relative block rounded-lg px-3 py-2 text-[0.94rem] font-medium transition hover:bg-green-50 hover:text-green-800 max-[980px]:rounded-none max-[980px]:border-b max-[980px]:border-line max-[980px]:px-1 max-[980px]:py-3.5 max-[980px]:text-[1.05rem] max-[980px]:hover:bg-transparent ${
+                      isActive
+                        ? "text-red-800 after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-0.5 after:w-8 after:bg-green-800 max-[980px]:after:left-0 max-[980px]:after:translate-x-0 max-[980px]:after:w-full"
+                        : "text-body"
+                    }`}
+                  >
+                    {link.name}
+                  </a>
+                </li>
+              );
+            })}
             <li className="mt-[18px] hidden max-[980px]:block">
               <a
                 href="#contact"
@@ -947,61 +979,244 @@ function Team({ members }) {
           </h2>
         </motion.header>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-6">
-          {members.length > 0 ? members.map((member) => {
-            const name = member.full_name || member.name;
-            const role = member.position || member.role;
-            const bio = member.biography || member.description;
-            const initials = name
-              ?.split(/\s+/)
-              .slice(0, 2)
-              .map((part) => part[0])
-              .join("");
-            return (
-              <motion.article
-                key={member.id}
-                {...fadeUp}
-                className="overflow-hidden rounded-[22px] border border-line bg-white"
-              >
-                <div className="grid aspect-square place-items-center bg-green-50 font-display text-[2.4rem] font-extrabold text-green-700">
-                  {member.image_url ? (
-                    <img
-                      src={member.image_url}
-                      alt={member.image_alt || `${name}, ${role}`}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
+          {members.length > 0
+            ? members.map((member) => {
+                const name = member.full_name || member.name;
+                const role = member.position || member.role;
+                const bio = member.biography || member.description;
+                const initials = name
+                  ?.split(/\s+/)
+                  .slice(0, 2)
+                  .map((part) => part[0])
+                  .join("");
+                return (
+                  <motion.article
+                    key={member.id}
+                    {...fadeUp}
+                    className="overflow-hidden rounded-[22px] border border-line bg-white"
+                  >
+                    <div className="grid aspect-square place-items-center bg-green-50 font-display text-[2.4rem] font-extrabold text-green-700">
+                      {member.image_url ? (
+                        <img
+                          src={member.image_url}
+                          alt={member.image_alt || `${name}, ${role}`}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        initials
+                      )}
+                    </div>
+                    <div className="px-[22px] pb-6 pt-5">
+                      <h3 className="mb-0.5 text-[1.2rem] font-bold">{name}</h3>
+                      <p className="mb-2.5 text-[0.9rem] font-semibold text-red-600">
+                        {role}
+                      </p>
+                      {bio && (
+                        <p className="text-[0.92rem] text-muted">{bio}</p>
+                      )}
+                    </div>
+                  </motion.article>
+                );
+              })
+            : placeholders.map((placeholder, index) => (
+                <motion.article
+                  key={placeholder.id}
+                  {...fadeUp}
+                  transition={{ ...fadeUp.transition, delay: index * 0.06 }}
+                  className="overflow-hidden rounded-[22px] border border-line bg-white"
+                  aria-label="Team member profile placeholder"
+                >
+                  <div className="grid aspect-square place-items-center bg-green-50 text-green-700">
+                    <Users
+                      className="h-16 w-16 opacity-60"
+                      aria-hidden="true"
                     />
-                  ) : (
-                    initials
-                  )}
-                </div>
-                <div className="px-[22px] pb-6 pt-5">
-                  <h3 className="mb-0.5 text-[1.2rem] font-bold">{name}</h3>
-                  <p className="mb-2.5 text-[0.9rem] font-semibold text-red-600">
-                    {role}
-                  </p>
-                  {bio && <p className="text-[0.92rem] text-muted">{bio}</p>}
-                </div>
-              </motion.article>
-            );
-          }) : placeholders.map((placeholder, index) => (
-            <motion.article
-              key={placeholder.id}
-              {...fadeUp}
-              transition={{ ...fadeUp.transition, delay: index * 0.06 }}
-              className="overflow-hidden rounded-[22px] border border-line bg-white"
-              aria-label="Team member profile placeholder"
-            >
-              <div className="grid aspect-square place-items-center bg-green-50 text-green-700">
-                <Users className="h-16 w-16 opacity-60" aria-hidden="true" />
-              </div>
-              <div className="px-[22px] pb-6 pt-5">
-                <div className="mb-3 h-5 w-3/4 rounded bg-green-100" />
-                <div className="h-4 w-1/2 rounded bg-red-100" />
-              </div>
-            </motion.article>
-          ))}
+                  </div>
+                  <div className="px-[22px] pb-6 pt-5">
+                    <div className="mb-3 h-5 w-3/4 rounded bg-green-100" />
+                    <div className="h-4 w-1/2 rounded bg-red-100" />
+                  </div>
+                </motion.article>
+              ))}
         </div>
       </div>
+    </section>
+  );
+}
+
+function Gallery({ images }) {
+  const galleryImages = images || [];
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const openLightbox = (index) => {
+    setCurrentIndex(index);
+    setLightboxOpen(true);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeLightbox = () => {
+    setLightboxOpen(false);
+    document.body.style.overflow = "";
+  };
+
+  const goToPrevious = () => {
+    setCurrentIndex((prev) =>
+      prev === 0 ? galleryImages.length - 1 : prev - 1
+    );
+  };
+
+  const goToNext = () => {
+    setCurrentIndex((prev) =>
+      prev === galleryImages.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!lightboxOpen) return;
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") goToPrevious();
+      if (e.key === "ArrowRight") goToNext();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxOpen]);
+
+  const currentImage = galleryImages[currentIndex];
+
+  return (
+    <section id="gallery" className="bg-bg-alt py-[clamp(72px,10vw,120px)]">
+      <div className="mx-auto max-w-site px-[clamp(16px,4vw,32px)]">
+        <motion.div {...fadeUp} className="mb-12 text-center">
+          <p className="eyebrow">Our Gallery</p>
+          <h2 className="text-[clamp(1.75rem,3.2vw,2.5rem)] font-extrabold tracking-tight">
+            Moments of Impact
+          </h2>
+          <p className="mt-3 text-[1.05rem] text-muted">
+            A glimpse into our training sessions, events, and community
+            initiatives.
+          </p>
+        </motion.div>
+
+        {galleryImages.length > 0 ? (
+          <motion.div
+            {...fadeUp}
+            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          >
+            {galleryImages.map((image, index) => (
+              <motion.article
+                key={image.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.5 }}
+                className="group overflow-hidden rounded-2xl bg-white shadow-sm cursor-pointer"
+                onClick={() => openLightbox(index)}
+              >
+                <div className="aspect-square overflow-hidden">
+                  <img
+                    src={image.image_url}
+                    alt={image.image_alt || image.title}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-5">
+                  <h3 className="font-bold text-ink">{image.title}</h3>
+                  {image.description && (
+                    <p className="mt-2 text-sm text-muted line-clamp-2">
+                      {image.description}
+                    </p>
+                  )}
+                </div>
+              </motion.article>
+            ))}
+          </motion.div>
+        ) : (
+          <motion.div
+            {...fadeUp}
+            className="rounded-2xl border-2 border-dashed border-line bg-white p-12 text-center"
+          >
+            <Package className="mx-auto h-16 w-16 text-muted" />
+            <p className="mt-4 font-bold text-ink">No gallery images yet</p>
+            <p className="mt-2 text-muted">
+              Check back soon to see our training sessions and events.
+            </p>
+          </motion.div>
+        )}
+      </div>
+
+      {/* Lightbox Modal */}
+      <AnimatePresence>
+        {lightboxOpen && currentImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeLightbox}
+            className="fixed inset-0 z-[150] flex items-center justify-center bg-black/90 p-4"
+          >
+            <button
+              onClick={closeLightbox}
+              className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition"
+              aria-label="Close lightbox"
+            >
+              <X className="h-6 w-6" />
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                goToPrevious();
+              }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 transition"
+              aria-label="Previous image"
+            >
+              <ArrowUp className="h-6 w-6 -rotate-90" />
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                goToNext();
+              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 transition"
+              aria-label="Next image"
+            >
+              <ArrowUp className="h-6 w-6 rotate-90" />
+            </button>
+
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="flex max-h-[90vh] max-w-[90vw] flex-col items-center justify-center"
+            >
+              <img
+                src={currentImage.image_url}
+                alt={currentImage.image_alt || currentImage.title}
+                className="max-h-[calc(90vh-120px)] max-w-[90vw] object-contain"
+              />
+              <div className="mt-4 text-center px-4">
+                <h3 className="text-xl font-bold text-white">
+                  {currentImage.title}
+                </h3>
+                {currentImage.description && (
+                  <p className="mt-2 text-white/80">
+                    {currentImage.description}
+                  </p>
+                )}
+                <p className="mt-2 text-sm text-white/60">
+                  {currentIndex + 1} / {galleryImages.length}
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
@@ -1383,6 +1598,7 @@ function Footer({ contact }) {
 function PublicSite() {
   const content = useSiteContent();
   const { members } = useTeamMembers();
+  const { images } = useGallery();
   const hero = content.hero || {};
   const about = content.about || {};
   const cta = content.call_to_action || {};
@@ -1510,6 +1726,7 @@ function PublicSite() {
       <About content={about} />
       <CommunityInitiative />
       <Team members={members} />
+      <Gallery images={images} />
       <CallToAction content={cta} />
       <Contact content={contact} />
       <Footer contact={contact} />
