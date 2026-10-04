@@ -35,7 +35,7 @@ export const Articles = () => {
             LATEST UPDATES
           </span>
           <h2 className="text-4xl md:text-5xl font-bold text-white">
-            News & Articles
+            SIIG News
           </h2>
         </motion.div>
 

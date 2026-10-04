@@ -145,12 +145,12 @@ function Navbar() {
   const hasArticles = articles && articles.length > 0;
 
   const navLinks = [
-    ...(hasArticles ? [{ name: "Articles", href: "#articles" }] : []),
+    ...(hasArticles ? [{ name: "SIIG News", href: "#articles" }] : []),
     { name: "Services", href: "#services" },
     { name: "Event Safety", href: "#events" },
     { name: "Our Approach", href: "#training" },
     { name: "About", href: "#about" },
-    { name: "Community", href: "#community" },
+    { name: "Community Initiatives/CSR", href: "#community" },
     { name: "Team", href: "#team" },
     { name: "Gallery", href: "#gallery" },
   ];
@@ -257,34 +257,28 @@ function Navbar() {
 
 function Hero({ content }) {
   const title =
-    content.title || "Next-generation safety.\nUncompromising protection.";
-  const [first, ...rest] = title.split("\n");
+    content.title ||
+    "Redefining Safety. [Protecting Lives] Building a Safer Future.";
+
+  const parts = title.split(/\[(.*?)\]/);
 
   return (
-    <section className="relative isolate overflow-hidden bg-green-900 pb-0 pt-[clamp(72px,12vw,140px)] text-white">
-      <div className="absolute inset-0 -z-10" aria-hidden="true">
-        <img
-          src="/images/fire-safety-training.jpg"
-          alt=""
-          className="h-full w-full object-cover object-[60%_40%]"
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(95deg,rgba(6,42,31,.97)_0%,rgba(8,48,36,.9)_42%,rgba(10,53,40,.55)_75%,rgba(10,53,40,.35)_100%),linear-gradient(0deg,rgba(6,42,31,.9)_0%,rgba(6,42,31,0)_40%)]" />
-      </div>
+    <section className="relative isolate overflow-hidden bg-green-900 pb-0 pt-[clamp(32px,4vw,56px)] text-white">
       <div className="mx-auto max-w-site px-[clamp(16px,4vw,32px)]">
         <div className="max-w-[800px]">
           <p className="eyebrow-light">{content.eyebrow}</p>
           <h1 className="font-display text-[clamp(2.3rem,5.2vw,3.9rem)] font-extrabold leading-[1.08] tracking-[-0.025em] text-white">
-            {first}
-            {rest.length > 0 && (
-              <>
-                <br />
-                <span className="text-[#f5c6cd]">{rest.join(" ")}</span>
-              </>
-            )}
+            <span className="whitespace-nowrap">
+              {parts[0]}
+              {parts[1] && <span className="text-[#f5c6cd]">{parts[1]}</span>}
+            </span>
+            {parts[2]}
           </h1>
-          <p className="mb-9 mt-6 max-w-[580px] text-[clamp(1.05rem,1.6vw,1.2rem)] text-white/85">
+
+          <p className="mb-9 mt-6 text-[clamp(1.05rem,1.6vw,1.2rem)] text-white/85">
             {content.description}
           </p>
+
           <div className="flex flex-wrap gap-3.5">
             <a href="#services" className="btn-primary-lg max-[480px]:w-full">
               {content.primary_button}
@@ -295,7 +289,8 @@ function Hero({ content }) {
             </a>
           </div>
         </div>
-        <ul className="mt-[clamp(64px,9vw,110px)] grid grid-cols-4 border-t border-white/16 max-[980px]:grid-cols-2 max-[480px]:grid-cols-1">
+
+        <ul className="mt-[clamp(40px,6vw,72px)] grid grid-cols-4 border-t border-white/16 max-[980px]:grid-cols-2 max-[480px]:grid-cols-1">
           {[
             {
               icon: Heart,

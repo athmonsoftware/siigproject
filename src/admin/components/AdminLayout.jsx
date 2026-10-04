@@ -7,7 +7,7 @@ const navigation = [
   { id: "dashboard", label: "Dashboard", path: "/admin" },
   { id: "content", label: "Content", path: "/admin/content" },
   { id: "enquiries", label: "Enquiries", path: "/admin/enquiries" },
-  { id: "articles", label: "Articles", path: "/admin/articles" },
+  { id: "articles", label: "SIIG News", path: "/admin/articles" },
   { id: "media", label: "Media", path: "/admin/media" },
   { id: "team", label: "Team", path: "/admin/team" },
   {
@@ -23,9 +23,8 @@ export default function AdminLayout({ children, session }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
-  // Automatically determine active nav based on current pathname
   const activeNav = navigation.find(
-    (item) => item.path === location.pathname,
+    (item) => item.path === location.pathname
   )?.id;
 
   if (!isSupabaseConfigured) {
