@@ -1,10 +1,10 @@
 export const defaultContent = {
   hero: {
-    eyebrow: "First Aid · Fire Safety · Compliance",
-    title: "Next-generation safety.\nUncompromising protection.",
+    eyebrow: "YOUR SAFETY, OUR MISSION",
+    title: "Redefining Safety. Protecting Lives. Building a Safer Future.",
     description:
-      "A trusted partner in health and safety. We prepare people to respond with confidence when seconds matter, in the workplace, at events and across the community.",
-    primary_button: "Explore Our Services",
+      "Innovative health, safety and security solutions that empower people, strengthen organisations and create a culture of preparedness.",
+    primary_button: "Explore Solutions",
     secondary_button: "Book a Consultation",
   },
   about: {
