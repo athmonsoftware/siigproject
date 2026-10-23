@@ -102,7 +102,7 @@ function Topbar({ contact }) {
           Your Safety, Our Mission
         </p>
         <ul className="flex items-center justify-center gap-4 sm:gap-[22px]">
-          <li>
+          {/* <li>
             <a
               href={`tel:${contact.phone_link}`}
               className="inline-flex items-center gap-[7px] transition hover:text-white"
@@ -110,14 +110,14 @@ function Topbar({ contact }) {
               <Phone className="h-4 w-4" />
               {contact.phone}
             </a>
-          </li>
+          </li> */}
           <li>
             <a
               href={`mailto:${contact.email}`}
               className="inline-flex items-center gap-[7px] transition hover:text-white"
             >
               <Mail className="h-4 w-4" />
-              <span className="hidden sm:inline">{contact.email}</span>
+              {/* <span className="hidden sm:inline">{contact.email}</span> */}
             </a>
           </li>
           <li>
