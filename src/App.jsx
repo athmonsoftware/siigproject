@@ -1044,6 +1044,31 @@ function Gallery({ images }) {
   const galleryImages = images || [];
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const [imagesPerSlide, setImagesPerSlide] = useState(4);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setImagesPerSlide(4);
+      } else if (window.innerWidth >= 768) {
+        setImagesPerSlide(2);
+      } else {
+        setImagesPerSlide(1);
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Ensure carouselIndex stays valid if imagesPerSlide changes on resize
+  useEffect(() => {
+    if (carouselIndex > galleryImages.length - imagesPerSlide) {
+      setCarouselIndex(Math.max(0, galleryImages.length - imagesPerSlide));
+    }
+  }, [imagesPerSlide, galleryImages.length]);
 
   const openLightbox = (index) => {
     setCurrentIndex(index);
@@ -1068,6 +1093,22 @@ function Gallery({ images }) {
     );
   };
 
+  const carouselPrevious = () => {
+    setCarouselIndex((prev) => {
+      const nextIndex = prev - imagesPerSlide;
+      return nextIndex < 0
+        ? Math.max(0, galleryImages.length - imagesPerSlide)
+        : nextIndex;
+    });
+  };
+
+  const carouselNext = () => {
+    setCarouselIndex((prev) => {
+      const nextIndex = prev + imagesPerSlide;
+      return nextIndex >= galleryImages.length ? 0 : nextIndex;
+    });
+  };
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!lightboxOpen) return;
@@ -1077,14 +1118,18 @@ function Gallery({ images }) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [lightboxOpen]);
+  }, [lightboxOpen, galleryImages.length]);
 
   const currentImage = galleryImages[currentIndex];
+  const visibleImages = galleryImages.slice(
+    carouselIndex,
+    carouselIndex + imagesPerSlide
+  );
 
   return (
     <section id="gallery" className="bg-bg-alt py-[clamp(72px,10vw,120px)]">
       <div className="mx-auto max-w-site px-[clamp(16px,4vw,32px)]">
-        <motion.div {...fadeUp} className="mb-12 text-center">
+        <motion.div className="mb-12 text-center">
           <p className="eyebrow">Our Gallery</p>
           <h2 className="text-[clamp(1.75rem,3.2vw,2.5rem)] font-extrabold tracking-tight">
             Moments of Impact
@@ -1096,44 +1141,79 @@ function Gallery({ images }) {
         </motion.div>
 
         {galleryImages.length > 0 ? (
-          <motion.div
-            {...fadeUp}
-            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-          >
-            {galleryImages.map((image, index) => (
-              <motion.article
-                key={image.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1, duration: 0.5 }}
-                className="group overflow-hidden rounded-2xl bg-white shadow-sm cursor-pointer"
-                onClick={() => openLightbox(index)}
-              >
-                <div className="aspect-square overflow-hidden">
-                  <img
-                    src={image.image_url}
-                    alt={image.image_alt || image.title}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    loading="lazy"
-                  />
+          <motion.div className="relative">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {visibleImages.map((image, index) => {
+                const actualIndex = carouselIndex + index;
+                return (
+                  <motion.article
+                    key={image.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1, duration: 0.5 }}
+                    className="group overflow-hidden rounded-2xl bg-white shadow-sm cursor-pointer"
+                    onClick={() => openLightbox(actualIndex)}
+                  >
+                    <div className="aspect-square overflow-hidden">
+                      <img
+                        src={image.image_url}
+                        alt={image.image_alt || image.title}
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="p-5">
+                      <h3 className="font-bold text-ink">{image.title}</h3>
+                      {image.description && (
+                        <p className="mt-2 text-sm text-muted line-clamp-2">
+                          {image.description}
+                        </p>
+                      )}
+                    </div>
+                  </motion.article>
+                );
+              })}
+            </div>
+
+            {/* Carousel Navigation */}
+            {galleryImages.length > imagesPerSlide && (
+              <div className="flex items-center justify-center gap-4 mt-8">
+                <button
+                  onClick={carouselPrevious}
+                  className="rounded-full bg-green-800 p-3 text-white hover:bg-green-900 transition shadow-lg"
+                  aria-label="Previous slide"
+                >
+                  <ArrowUp className="h-5 w-5 -rotate-90" />
+                </button>
+                <div className="flex items-center gap-2">
+                  {Array.from({
+                    length: Math.ceil(galleryImages.length / imagesPerSlide),
+                  }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCarouselIndex(i * imagesPerSlide)}
+                      className={`h-2 w-2 rounded-full transition ${
+                        Math.floor(carouselIndex / imagesPerSlide) === i
+                          ? "bg-green-800 w-6"
+                          : "bg-gray-300 hover:bg-gray-400"
+                      }`}
+                      aria-label={`Go to slide ${i + 1}`}
+                    />
+                  ))}
                 </div>
-                <div className="p-5">
-                  <h3 className="font-bold text-ink">{image.title}</h3>
-                  {image.description && (
-                    <p className="mt-2 text-sm text-muted line-clamp-2">
-                      {image.description}
-                    </p>
-                  )}
-                </div>
-              </motion.article>
-            ))}
+                <button
+                  onClick={carouselNext}
+                  className="rounded-full bg-green-800 p-3 text-white hover:bg-green-900 transition shadow-lg"
+                  aria-label="Next slide"
+                >
+                  <ArrowUp className="h-5 w-5 rotate-90" />
+                </button>
+              </div>
+            )}
           </motion.div>
         ) : (
-          <motion.div
-            {...fadeUp}
-            className="rounded-2xl border-2 border-dashed border-line bg-white p-12 text-center"
-          >
+          <motion.div className="rounded-2xl border-2 border-dashed border-line bg-white p-12 text-center">
             <Package className="mx-auto h-16 w-16 text-muted" />
             <p className="mt-4 font-bold text-ink">No gallery images yet</p>
             <p className="mt-2 text-muted">

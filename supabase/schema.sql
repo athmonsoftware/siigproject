@@ -227,10 +227,105 @@ drop policy if exists "Staff deletes site media" on storage.objects;
 create policy "Staff deletes site media" on storage.objects for delete
 to authenticated using (bucket_id = 'site-media' and public.is_staff());
 
-create table if not exists public.gallery (
+create table if not exists public.gallery_topics (
   id uuid primary key default gen_random_uuid(),
   title text not null check (char_length(title) between 2 and 200),
   description text check (char_length(description) <= 500),
+  display_order integer not null default 0 check (display_order >= 0),
+  is_published boolean not null default true,
+  created_by uuid references auth.users(id) on delete set null,
+  updated_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.gallery_topics add column if not exists created_by uuid references auth.users(id) on delete set null;
+alter table public.gallery_topics add column if not exists updated_by uuid references auth.users(id) on delete set null;
+
+drop trigger if exists gallery_topics_updated_at on public.gallery_topics;
+create trigger gallery_topics_updated_at before update on public.gallery_topics
+for each row execute function public.touch_updated_at();
+
+alter table public.gallery_topics enable row level security;
+
+drop policy if exists "Public reads published gallery topics" on public.gallery_topics;
+create policy "Public reads published gallery topics" on public.gallery_topics for select
+to anon, authenticated using (is_published or public.is_staff());
+
+drop policy if exists "Staff manages gallery topics" on public.gallery_topics;
+create policy "Staff manages gallery topics" on public.gallery_topics for all
+to authenticated using (public.is_staff()) with check (public.is_staff());
+
+-- First, add topic_id column to existing gallery table if it doesn't exist
+do $$
+begin
+  if not exists (
+    select 1 from information_schema.columns 
+    where table_schema = 'public' 
+    and table_name = 'gallery' 
+    and column_name = 'topic_id'
+  ) then
+    alter table public.gallery add column topic_id uuid references public.gallery_topics(id) on delete cascade;
+  end if;
+end $$;
+
+-- Add title and description columns for backward compatibility if they don't exist
+-- Make them nullable since title/description are now in gallery_topics
+alter table public.gallery add column if not exists title text;
+alter table public.gallery add column if not exists description text;
+
+-- Drop NOT NULL constraints on title and description since they're now in gallery_topics
+alter table public.gallery alter column title drop not null;
+alter table public.gallery alter column description drop not null;
+
+-- Migration: Create topics from existing gallery items for backward compatibility
+-- Only affects images without a topic_id
+do $$
+declare
+  gallery_record record;
+  new_topic_id uuid;
+  existing_topic_id uuid;
+begin
+  -- For each gallery item that doesn't have a topic_id, create a topic
+  for gallery_record in
+    select id, title, description, display_order, is_published
+    from public.gallery
+    where topic_id is null
+  loop
+    -- Check if a topic with the same title already exists
+    select id into existing_topic_id
+    from public.gallery_topics
+    where title = coalesce(gallery_record.title, 'Untitled')
+    limit 1;
+    
+    if existing_topic_id is not null then
+      -- Use existing topic
+      update public.gallery
+      set topic_id = existing_topic_id
+      where id = gallery_record.id;
+    else
+      -- Create a new topic from the gallery item's data
+      insert into public.gallery_topics (title, description, display_order, is_published)
+      values (
+        coalesce(gallery_record.title, 'Untitled'),
+        coalesce(gallery_record.description, ''),
+        gallery_record.display_order,
+        gallery_record.is_published
+      )
+      returning id into new_topic_id;
+      
+      -- Update the gallery item to reference the new topic
+      update public.gallery
+      set topic_id = new_topic_id
+      where id = gallery_record.id;
+    end if;
+  end loop;
+end $$;
+
+-- Now create the table with the new structure (won't affect existing table)
+create table if not exists public.gallery (
+  id uuid primary key default gen_random_uuid(),
+  topic_id uuid references public.gallery_topics(id) on delete cascade,
   image_url text not null check (char_length(image_url) <= 1000),
   image_alt text check (char_length(image_alt) <= 240),
   display_order integer not null default 0 check (display_order >= 0),
