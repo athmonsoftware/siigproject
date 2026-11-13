@@ -257,35 +257,41 @@ function Navbar() {
 
 function Hero({ content }) {
   const title =
-    content.title ||
+    content?.title ||
     "Redefining Safety. [Protecting Lives] Building a Safer Future.";
 
   const parts = title.split(/\[(.*?)\]/);
 
   return (
-    <section className="relative isolate overflow-hidden bg-green-900 pb-0 pt-[clamp(32px,4vw,56px)] text-white">
-      <div className="mx-auto max-w-site px-[clamp(16px,4vw,32px)]">
+    <section className="relative isolate overflow-hidden bg-green-900 pb-0 pt-[clamp(32px,4vw,56px)] text-white w-full box-border">
+      <div className="mx-auto max-w-site px-[clamp(16px,4vw,32px)] w-full">
         <div className="max-w-[800px]">
-          <p className="eyebrow-light">{content.eyebrow}</p>
-          <h1 className="font-display text-[clamp(2.3rem,5.2vw,3.9rem)] font-extrabold leading-[1.08] tracking-[-0.025em] text-white">
-            <span className="whitespace-nowrap">
+          <p className="eyebrow-light">{content?.eyebrow}</p>
+          <h1 className="font-display text-[clamp(2.1rem,5.2vw,3.9rem)] font-extrabold leading-[1.08] tracking-[-0.025em] text-white break-words">
+            <span>
               {parts[0]}
               {parts[1] && <span className="text-[#f5c6cd]">{parts[1]}</span>}
             </span>
             {parts[2]}
           </h1>
 
-          <p className="mb-9 mt-6 text-[clamp(1.05rem,1.6vw,1.2rem)] text-white/85">
-            {content.description}
+          <p className="mb-9 mt-6 text-[clamp(1.01rem,1.6vw,1.2rem)] text-white/85">
+            {content?.description}
           </p>
 
-          <div className="flex flex-wrap gap-3.5">
-            <a href="#services" className="btn-primary-lg max-[480px]:w-full">
-              {content.primary_button}
+          <div className="flex flex-wrap gap-3.5 max-[480px]:flex-col">
+            <a
+              href="#services"
+              className="btn-primary-lg max-[480px]:w-full text-center justify-center"
+            >
+              {content?.primary_button}
               <ArrowRight className="h-[1.15em] w-[1.15em]" />
             </a>
-            <a href="#contact" className="btn-ghost max-[480px]:w-full">
-              {content.secondary_button}
+            <a
+              href="#contact"
+              className="btn-ghost max-[480px]:w-full text-center justify-center"
+            >
+              {content?.secondary_button}
             </a>
           </div>
         </div>
@@ -1063,12 +1069,12 @@ function Gallery({ images }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Ensure carouselIndex stays valid if imagesPerSlide changes on resize
   useEffect(() => {
-    if (carouselIndex > galleryImages.length - imagesPerSlide) {
-      setCarouselIndex(Math.max(0, galleryImages.length - imagesPerSlide));
+    const maxIndex = Math.max(0, galleryImages.length - imagesPerSlide);
+    if (carouselIndex > maxIndex) {
+      setCarouselIndex(maxIndex);
     }
-  }, [imagesPerSlide, galleryImages.length]);
+  }, [imagesPerSlide, galleryImages.length, carouselIndex]);
 
   const openLightbox = (index) => {
     setCurrentIndex(index);
@@ -1096,17 +1102,35 @@ function Gallery({ images }) {
   const carouselPrevious = () => {
     setCarouselIndex((prev) => {
       const nextIndex = prev - imagesPerSlide;
-      return nextIndex < 0
-        ? Math.max(0, galleryImages.length - imagesPerSlide)
-        : nextIndex;
+      if (nextIndex < 0) {
+        return Math.max(
+          0,
+          galleryImages.length -
+            (galleryImages.length % imagesPerSlide || imagesPerSlide)
+        );
+      }
+      return nextIndex;
     });
   };
 
   const carouselNext = () => {
     setCarouselIndex((prev) => {
       const nextIndex = prev + imagesPerSlide;
-      return nextIndex >= galleryImages.length ? 0 : nextIndex;
+      if (nextIndex >= galleryImages.length) {
+        return 0;
+      }
+      return nextIndex;
     });
+  };
+
+  // Handle drag/swipe gesture completion
+  const handleDragEnd = (event, info) => {
+    const swipeThreshold = 50; // minimum distance in pixels to trigger slide change
+    if (info.offset.x > swipeThreshold) {
+      carouselPrevious();
+    } else if (info.offset.x < -swipeThreshold) {
+      carouselNext();
+    }
   };
 
   useEffect(() => {
@@ -1121,14 +1145,21 @@ function Gallery({ images }) {
   }, [lightboxOpen, galleryImages.length]);
 
   const currentImage = galleryImages[currentIndex];
+
   const visibleImages = galleryImages.slice(
     carouselIndex,
-    carouselIndex + imagesPerSlide
+    Math.min(carouselIndex + imagesPerSlide, galleryImages.length)
   );
 
+  const totalPages = Math.ceil(galleryImages.length / imagesPerSlide);
+  const activePage = Math.floor(carouselIndex / imagesPerSlide);
+
   return (
-    <section id="gallery" className="bg-bg-alt py-[clamp(72px,10vw,120px)]">
-      <div className="mx-auto max-w-site px-[clamp(16px,4vw,32px)]">
+    <section
+      id="gallery"
+      className="bg-bg-alt py-[clamp(72px,10vw,120px)] overflow-hidden"
+    >
+      <div className="mx-auto max-w-site px-[clamp(16px,4vw,32px)] w-full box-border">
         <motion.div className="mb-12 text-center">
           <p className="eyebrow">Our Gallery</p>
           <h2 className="text-[clamp(1.75rem,3.2vw,2.5rem)] font-extrabold tracking-tight">
@@ -1141,21 +1172,28 @@ function Gallery({ images }) {
         </motion.div>
 
         {galleryImages.length > 0 ? (
-          <motion.div className="relative">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <motion.div className="relative w-full">
+            {/* Added touch swipe drag properties */}
+            <motion.div
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={handleDragEnd}
+              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 w-full cursor-grab active:cursor-grabbing touch-pan-y"
+            >
               {visibleImages.map((image, index) => {
                 const actualIndex = carouselIndex + index;
                 return (
                   <motion.article
-                    key={image.id}
+                    key={image.id || actualIndex}
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.1, duration: 0.5 }}
-                    className="group overflow-hidden rounded-2xl bg-white shadow-sm cursor-pointer"
+                    className="group overflow-hidden rounded-2xl bg-white shadow-sm cursor-pointer w-full select-none"
                     onClick={() => openLightbox(actualIndex)}
                   >
-                    <div className="aspect-square overflow-hidden">
+                    <div className="aspect-square overflow-hidden w-full pointer-events-none">
                       <img
                         src={image.image_url}
                         alt={image.image_alt || image.title}
@@ -1174,37 +1212,41 @@ function Gallery({ images }) {
                   </motion.article>
                 );
               })}
-            </div>
+            </motion.div>
 
             {/* Carousel Navigation */}
             {galleryImages.length > imagesPerSlide && (
-              <div className="flex items-center justify-center gap-4 mt-8">
+              <div className="flex flex-row items-center justify-center gap-4 mt-8 w-full">
                 <button
+                  type="button"
                   onClick={carouselPrevious}
-                  className="rounded-full bg-green-800 p-3 text-white hover:bg-green-900 transition shadow-lg"
+                  className="rounded-full bg-green-800 p-3 text-white hover:bg-green-900 transition shadow-lg flex-shrink-0"
                   aria-label="Previous slide"
                 >
                   <ArrowUp className="h-5 w-5 -rotate-90" />
                 </button>
-                <div className="flex items-center gap-2">
-                  {Array.from({
-                    length: Math.ceil(galleryImages.length / imagesPerSlide),
-                  }).map((_, i) => (
+
+                {/* Dots container with side-by-side responsiveness and hidden scrollbars */}
+                <div className="flex items-center gap-2 overflow-x-auto px-2 max-w-[200px] sm:max-w-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                  {Array.from({ length: totalPages }).map((_, i) => (
                     <button
+                      type="button"
                       key={i}
                       onClick={() => setCarouselIndex(i * imagesPerSlide)}
-                      className={`h-2 w-2 rounded-full transition ${
-                        Math.floor(carouselIndex / imagesPerSlide) === i
+                      className={`h-2 rounded-full transition flex-shrink-0 ${
+                        activePage === i
                           ? "bg-green-800 w-6"
-                          : "bg-gray-300 hover:bg-gray-400"
+                          : "bg-gray-300 hover:bg-gray-400 w-2"
                       }`}
                       aria-label={`Go to slide ${i + 1}`}
                     />
                   ))}
                 </div>
+
                 <button
+                  type="button"
                   onClick={carouselNext}
-                  className="rounded-full bg-green-800 p-3 text-white hover:bg-green-900 transition shadow-lg"
+                  className="rounded-full bg-green-800 p-3 text-white hover:bg-green-900 transition shadow-lg flex-shrink-0"
                   aria-label="Next slide"
                 >
                   <ArrowUp className="h-5 w-5 rotate-90" />
@@ -1231,9 +1273,10 @@ function Gallery({ images }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={closeLightbox}
-            className="fixed inset-0 z-[150] flex items-center justify-center bg-black/90 p-4"
+            className="fixed inset-0 z-[150] flex items-center justify-center bg-black/90 p-4 box-border"
           >
             <button
+              type="button"
               onClick={closeLightbox}
               className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition"
               aria-label="Close lightbox"
@@ -1242,6 +1285,7 @@ function Gallery({ images }) {
             </button>
 
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 goToPrevious();
@@ -1253,6 +1297,7 @@ function Gallery({ images }) {
             </button>
 
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 goToNext();
