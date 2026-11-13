@@ -1,26 +1,72 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, X, ChevronDown } from "lucide-react";
+import { ArrowRight, X, FileText, ArrowUp } from "lucide-react";
 import { useArticles } from "../hooks/useArticles.js";
+
+const parseBoldText = (text) => {
+  if (!text) return "";
+  // Replace *text* with styled strong tag
+  return text.replace(
+    /\*([^*]+)\*/g,
+    '<strong class="text-lg font-bold text-red-400">$1</strong>'
+  );
+};
 
 export const Articles = () => {
   const { articles, loading } = useArticles();
   const [selectedArticle, setSelectedArticle] = useState(null);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const [articlesPerSlide, setArticlesPerSlide] = useState(3);
 
-  // Track how many articles to show initially (set to 3), and how many to add per click
-  const [visibleCount, setVisibleCount] = useState(3);
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setArticlesPerSlide(3);
+      } else if (window.innerWidth >= 768) {
+        setArticlesPerSlide(2);
+      } else {
+        setArticlesPerSlide(1);
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Ensure carouselIndex stays valid when articlesPerSlide changes
+  useEffect(() => {
+    if (articles && carouselIndex > articles.length - articlesPerSlide) {
+      setCarouselIndex(Math.max(0, articles.length - articlesPerSlide));
+    }
+  }, [articlesPerSlide, articles, carouselIndex]);
 
   if (loading || !articles || articles.length === 0) {
     return null;
   }
 
-  const handleLoadMore = () => {
-    // Increase the visible count by 3 (or however many you prefer)
-    setVisibleCount((prev) => prev + 3);
+  // Updated to page backward by articlesPerSlide to show entirely new articles
+  const carouselPrevious = () => {
+    setCarouselIndex((prev) => {
+      const nextIndex = prev - articlesPerSlide;
+      return nextIndex < 0
+        ? Math.max(0, articles.length - articlesPerSlide)
+        : nextIndex;
+    });
   };
 
-  const displayedArticles = articles.slice(0, visibleCount);
-  const hasMoreArticles = visibleCount < articles.length;
+  // Updated to page forward by articlesPerSlide to show entirely new articles
+  const carouselNext = () => {
+    setCarouselIndex((prev) => {
+      const nextIndex = prev + articlesPerSlide;
+      return nextIndex >= articles.length ? 0 : nextIndex;
+    });
+  };
+
+  const visibleArticles = articles.slice(
+    carouselIndex,
+    carouselIndex + articlesPerSlide
+  );
 
   return (
     <section id="articles" className="py-24 px-4 bg-brand-green">
@@ -39,68 +85,109 @@ export const Articles = () => {
           </h2>
         </motion.div>
 
-        {/* Articles Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {displayedArticles.map((article, index) => (
-            <motion.div
-              key={article.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: (index % 3) * 0.1, duration: 0.5 }}
-              onClick={() => setSelectedArticle(article)}
-              className="cursor-pointer backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl overflow-hidden shadow-xl group hover:border-brand-red/50 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
-            >
-              <div>
-                {article.cover_image && (
-                  <div className="w-full h-52 overflow-hidden relative bg-black/40 flex items-center justify-center">
-                    <img
-                      src={article.cover_image}
-                      alt={article.cover_image_alt || article.title}
-                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>
+        {/* Articles Carousel */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="relative"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {visibleArticles.map((article, index) => {
+              return (
+                <motion.div
+                  key={article.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1, duration: 0.5 }}
+                  onClick={() => setSelectedArticle(article)}
+                  className="cursor-pointer backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl overflow-hidden shadow-xl group hover:border-brand-red/50 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+                >
+                  <div>
+                    {article.cover_image ? (
+                      <div className="w-full h-52 overflow-hidden relative bg-black/40 flex items-center justify-center">
+                        <img
+                          src={article.cover_image}
+                          alt={article.cover_image_alt || article.title}
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>
+                      </div>
+                    ) : (
+                      <div className="w-full h-52 overflow-hidden relative bg-black/40 flex items-center justify-center">
+                        <FileText className="h-16 w-16 text-white/30" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>
+                      </div>
+                    )}
+                    <div className="p-6">
+                      <p className="text-xs font-medium text-gray-300 mb-2">
+                        {new Date(article.created_at).toLocaleDateString(
+                          "en-US",
+                          {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          }
+                        )}
+                      </p>
+                      <h3 className="text-xl font-bold text-white mb-3 group-hover:text-brand-red transition-colors line-clamp-2">
+                        {article.title}
+                      </h3>
+                      {/* Added whitespace-pre-line to respect summary line breaks */}
+                      <p className="text-gray-200 text-sm leading-relaxed line-clamp-3 mb-4 whitespace-pre-line">
+                        {article.excerpt || article.content}
+                      </p>
+                    </div>
                   </div>
-                )}
-                <div className="p-6">
-                  <p className="text-xs font-medium text-gray-300 mb-2">
-                    {new Date(article.created_at).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </p>
-                  <h3 className="text-xl font-bold text-white mb-3 group-hover:text-brand-red transition-colors line-clamp-2">
-                    {article.title}
-                  </h3>
-                  <p className="text-gray-200 text-sm leading-relaxed line-clamp-3 mb-4">
-                    {article.excerpt || article.content}
-                  </p>
-                </div>
-              </div>
 
-              <div className="p-6 pt-0">
-                <span className="inline-flex items-center gap-2 text-sm font-semibold text-white group-hover:text-brand-red transition">
-                  Read Full Article{" "}
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </span>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Load More Button */}
-        {hasMoreArticles && (
-          <div className="mt-16 text-center">
-            <button
-              onClick={handleLoadMore}
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 text-white font-semibold text-sm transition-all duration-300 hover:scale-105 shadow-lg backdrop-blur-md"
-            >
-              Load More Articles
-              <ChevronDown className="w-4 h-4" />
-            </button>
+                  <div className="p-6 pt-0">
+                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-white group-hover:text-brand-red transition">
+                      Read Full Article{" "}
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </span>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
-        )}
+
+          {/* Carousel Navigation */}
+          {articles.length > articlesPerSlide && (
+            <div className="flex items-center justify-center gap-4 mt-12">
+              <button
+                onClick={carouselPrevious}
+                className="rounded-full bg-white/20 p-3 text-white hover:bg-white/30 transition shadow-lg"
+                aria-label="Previous slide"
+              >
+                <ArrowUp className="h-5 w-5 -rotate-90" />
+              </button>
+              <div className="flex items-center gap-2">
+                {Array.from({
+                  length: Math.ceil(articles.length / articlesPerSlide),
+                }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCarouselIndex(i * articlesPerSlide)}
+                    className={`h-2 w-2 rounded-full transition ${
+                      Math.floor(carouselIndex / articlesPerSlide) === i
+                        ? "bg-white w-6"
+                        : "bg-white/30 hover:bg-white/50"
+                    }`}
+                    aria-label={`Go to slide ${i + 1}`}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={carouselNext}
+                className="rounded-full bg-white/20 p-3 text-white hover:bg-white/30 transition shadow-lg"
+                aria-label="Next slide"
+              >
+                <ArrowUp className="h-5 w-5 rotate-90" />
+              </button>
+            </div>
+          )}
+        </motion.div>
       </div>
 
       {/* Modal View */}
@@ -125,7 +212,7 @@ export const Articles = () => {
                 <X className="w-6 h-6" />
               </button>
 
-              {selectedArticle.cover_image && (
+              {selectedArticle.cover_image ? (
                 <div className="w-full max-h-96 overflow-hidden rounded-2xl mb-6 shadow-lg bg-black/40 flex items-center justify-center">
                   <img
                     src={selectedArticle.cover_image}
@@ -134,6 +221,10 @@ export const Articles = () => {
                     }
                     className="w-full max-h-96 object-contain"
                   />
+                </div>
+              ) : (
+                <div className="w-full max-h-96 overflow-hidden rounded-2xl mb-6 shadow-lg bg-black/40 flex items-center justify-center">
+                  <FileText className="h-24 w-24 text-white/30" />
                 </div>
               )}
 
@@ -148,12 +239,16 @@ export const Articles = () => {
                   }
                 )}
               </p>
-              <h2 className="text-2xl md:text-3xl font-black mb-6 leading-tight">
+              {/* Added text-brand-red to highlight the title in full modal mode */}
+              <h2 className="text-2xl md:text-3xl font-black mb-6 leading-tight text-brand-red">
                 {selectedArticle.title}
               </h2>
-              <div className="text-gray-100 space-y-4 whitespace-pre-wrap leading-relaxed text-base">
-                {selectedArticle.content}
-              </div>
+              <div
+                className="text-gray-100 space-y-4 whitespace-pre-wrap leading-relaxed text-base"
+                dangerouslySetInnerHTML={{
+                  __html: parseBoldText(selectedArticle.content),
+                }}
+              />
             </motion.div>
           </div>
         )}
