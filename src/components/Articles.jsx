@@ -63,14 +63,30 @@ export const Articles = () => {
     });
   };
 
+  // Handle drag/swipe gesture completion for touchscreens
+  const handleDragEnd = (event, info) => {
+    const swipeThreshold = 50; // minimum distance in pixels to trigger slide change
+    if (info.offset.x > swipeThreshold) {
+      carouselPrevious();
+    } else if (info.offset.x < -swipeThreshold) {
+      carouselNext();
+    }
+  };
+
   const visibleArticles = articles.slice(
     carouselIndex,
     carouselIndex + articlesPerSlide
   );
 
+  const totalPages = Math.ceil(articles.length / articlesPerSlide);
+  const activePage = Math.floor(carouselIndex / articlesPerSlide);
+
   return (
-    <section id="articles" className="py-24 px-4 bg-brand-green">
-      <div className="max-w-7xl mx-auto">
+    <section
+      id="articles"
+      className="py-24 px-4 bg-brand-green overflow-hidden"
+    >
+      <div className="max-w-7xl mx-auto w-full box-border">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -90,9 +106,16 @@ export const Articles = () => {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="relative"
+          className="relative w-full"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Added touch swipe drag properties */}
+          <motion.div
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragEnd={handleDragEnd}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full cursor-grab active:cursor-grabbing touch-pan-y"
+          >
             {visibleArticles.map((article, index) => {
               return (
                 <motion.div
@@ -102,9 +125,9 @@ export const Articles = () => {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1, duration: 0.5 }}
                   onClick={() => setSelectedArticle(article)}
-                  className="cursor-pointer backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl overflow-hidden shadow-xl group hover:border-brand-red/50 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+                  className="cursor-pointer backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl overflow-hidden shadow-xl group hover:border-brand-red/50 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between select-none"
                 >
-                  <div>
+                  <div className="pointer-events-none">
                     {article.cover_image ? (
                       <div className="w-full h-52 overflow-hidden relative bg-black/40 flex items-center justify-center">
                         <img
@@ -150,37 +173,41 @@ export const Articles = () => {
                 </motion.div>
               );
             })}
-          </div>
+          </motion.div>
 
-          {/* Carousel Navigation */}
+          {/* Carousel Navigation - Side by side layout with hidden scrollbar */}
           {articles.length > articlesPerSlide && (
-            <div className="flex items-center justify-center gap-4 mt-12">
+            <div className="flex flex-row items-center justify-center gap-4 mt-12 w-full">
               <button
+                type="button"
                 onClick={carouselPrevious}
-                className="rounded-full bg-white/20 p-3 text-white hover:bg-white/30 transition shadow-lg"
+                className="rounded-full bg-white/20 p-3 text-white hover:bg-white/30 transition shadow-lg flex-shrink-0"
                 aria-label="Previous slide"
               >
                 <ArrowUp className="h-5 w-5 -rotate-90" />
               </button>
-              <div className="flex items-center gap-2">
-                {Array.from({
-                  length: Math.ceil(articles.length / articlesPerSlide),
-                }).map((_, i) => (
+
+              {/* Dots container with side-by-side responsiveness and hidden scrollbars */}
+              <div className="flex items-center gap-2 overflow-x-auto px-2 max-w-[200px] sm:max-w-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                {Array.from({ length: totalPages }).map((_, i) => (
                   <button
+                    type="button"
                     key={i}
                     onClick={() => setCarouselIndex(i * articlesPerSlide)}
-                    className={`h-2 w-2 rounded-full transition ${
-                      Math.floor(carouselIndex / articlesPerSlide) === i
+                    className={`h-2 rounded-full transition flex-shrink-0 ${
+                      activePage === i
                         ? "bg-white w-6"
-                        : "bg-white/30 hover:bg-white/50"
+                        : "bg-white/30 hover:bg-white/50 w-2"
                     }`}
                     aria-label={`Go to slide ${i + 1}`}
                   />
                 ))}
               </div>
+
               <button
+                type="button"
                 onClick={carouselNext}
-                className="rounded-full bg-white/20 p-3 text-white hover:bg-white/30 transition shadow-lg"
+                className="rounded-full bg-white/20 p-3 text-white hover:bg-white/30 transition shadow-lg flex-shrink-0"
                 aria-label="Next slide"
               >
                 <ArrowUp className="h-5 w-5 rotate-90" />
@@ -205,6 +232,7 @@ export const Articles = () => {
               className="bg-brand-green border border-white/20 w-full max-w-3xl max-h-[85vh] overflow-y-auto rounded-3xl p-6 md:p-10 shadow-2xl relative text-white"
             >
               <button
+                type="button"
                 onClick={() => setSelectedArticle(null)}
                 className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition z-10"
                 aria-label="Close modal"
